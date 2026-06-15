@@ -260,6 +260,22 @@ cd src
   || warn "Flask 앱 import 실패 — 로그를 확인하세요."
 cd ..
 
+# VS Code 확장 설치 (code 명령어 있을 때만)
+if command -v code &>/dev/null; then
+  info "VS Code 확장 설치 중..."
+  VSCODE_EXTS=(
+    "bierner.markdown-mermaid"   # Markdown Preview Mermaid Support
+  )
+  for ext in "${VSCODE_EXTS[@]}"; do
+    code --install-extension "$ext" --force &>/dev/null \
+      && ok "VS Code 확장: $ext" \
+      || warn "VS Code 확장 설치 실패: $ext"
+  done
+else
+  warn "VS Code(code 명령어)를 찾을 수 없습니다. 다이어그램 미리보기를 위해 아래 명령어를 실행하세요:"
+  echo -e "  ${CYAN}code --install-extension bierner.markdown-mermaid${NC}"
+fi
+
 # Asterisk Docker 빌드 (Docker 있을 때만)
 if [[ "$DOCKER_OK" == "true" ]]; then
   info "Asterisk 이미지 빌드 중..."
