@@ -358,6 +358,135 @@ def api_simulate():
 
 # ─── 로그 ────────────────────────────────────────────────────────────────────
 
+# ─── AGI TTS (Asterisk 호환 8kHz mono WAV) ───────────────────────────────────
+
+@app.route("/api/agi/tts", methods=["POST"])
+def api_agi_tts():
+    """
+    Asterisk AGI용 TTS — 8000Hz mono int16 WAV 반환
+    JSON: { text, voice }
+    """
+    from scipy.signal import resample_poly
+
+    data  = request.json or {}
+    text  = data.get("text", "").strip()
+    voice = data.get("voice", "F1")
+
+    if not text:
+        return jsonify({"error": "text가 비어있습니다."}), 400
+    if voice not in TTS_VOICES:
+        return jsonify({"error": "유효하지 않은 목소리입니다."}), 400
+
+    try:
+        tts_engine = get_tts()
+        style = tts_engine.get_voice_style(voice)
+        audio, _ = tts_engine.synthesize(text, voice_style=style, lang="ko")
+
+        # (1, N) → float32 mono
+        audio_f = audio.squeeze().astype(np.float32)
+        peak = np.abs(audio_f).max()
+        if peak > 0:
+            audio_f /= peak
+
+        # 44100 → 8000 Hz 리샘플 (441/80)
+        audio_8k = resample_poly(audio_f, 80, 441).astype(np.float32)
+        audio_8k_int = (audio_8k * 32767).clip(-32768, 32767).astype(np.int16)
+
+        buf = io.BytesIO()
+        wavfile.write(buf, 8000, audio_8k_int)
+        buf.seek(0)
+        return send_file(buf, mimetype="audio/wav", download_name="agi_tts.wav")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ─── AGI Judge (LLM 판정) ─────────────────────────────────────────────────────
+
+@app.route("/api/agi/judge", methods=["POST"])
+def api_agi_judge():
+    """
+    PHASE 1/2 판정 — 고객 응답 텍스트 → verdict 반환
+    JSON: { phase, transcript, context }
+    """
+    import openai
+
+    data       = request.json or {}
+    phase      = int(data.get("phase", 1))
+    transcript = data.get("transcript", "").strip()
+    ctx        = data.get("context", {})
+
+    api_key = os.getenv("NVIDIA_API_KEY", "")
+    if not api_key or api_key.startswith("nvapi-your"):
+        return jsonify({"error": "NVIDIA_API_KEY 미설정"}), 500
+
+    if phase == 1:
+        prompt = (
+            f'고객 응답: "{transcript}"\n\n'
+            "고객이 본인임을 확인하면 confirmed, 아니면 denied 한 단어로만 답하세요."
+        )
+    else:
+        prompt = (
+            f'고객 응답: "{transcript}"\n\n'
+            "고객이 본인 거래라고 하면 legitimate, "
+            "부정 거래라고 하면 fraud, "
+            "불확실하면 uncertain — 한 단어로만 답하세요."
+        )
+
+    try:
+        client = openai.OpenAI(
+            api_key=api_key,
+            base_url="https://integrate.api.nvidia.com/v1",
+        )
+        resp = client.chat.completions.create(
+            model=os.getenv("NIM_MODEL", "openai/gpt-oss-120b-instruct"),
+            messages=[
+                {"role": "system", "content": "FDS 판정 AI. 지시된 단어 하나로만 답하세요."},
+                {"role": "user",   "content": prompt},
+            ],
+            temperature=0,
+            max_tokens=16,
+        )
+        answer = resp.choices[0].message.content.strip().lower()
+
+        if phase == 1:
+            verdict = "confirmed" if "confirmed" in answer else "denied"
+        else:
+            if "legitimate" in answer:
+                verdict = "legitimate"
+            elif "fraud" in answer:
+                verdict = "fraud"
+            else:
+                verdict = "uncertain"
+
+        return jsonify({"verdict": verdict, "raw": answer})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ─── 자동 발신 트리거 ─────────────────────────────────────────────────────────
+
+@app.route("/api/call", methods=["POST"])
+def api_call():
+    """
+    iPhone(Linphone)으로 FDS 자동 발신
+    JSON: { customer_name, transaction, risk_level }
+    """
+    try:
+        from caller import call as ami_call
+    except ImportError:
+        return jsonify({"error": "caller.py를 찾을 수 없습니다."}), 500
+
+    data   = request.json or {}
+    result = ami_call(
+        transaction   = data.get("transaction", {}),
+        customer_name = data.get("customer_name", "고객"),
+        risk_level    = data.get("risk_level",    "high"),
+    )
+    return jsonify(result)
+
+
+# ─── 로그 ────────────────────────────────────────────────────────────────────
+
 @app.route("/api/logs")
 def api_logs():
     log_dir = Path(__file__).parent.parent / "logs"

@@ -1,6 +1,28 @@
 version: '3.8'
 
 services:
+
+  # ── Asterisk PBX ──────────────────────────────────────────────────────────
+  asterisk:
+    build:
+      context: .
+      dockerfile: Dockerfile.asterisk
+    container_name: fds-asterisk
+    network_mode: host          # SIP/RTP는 host 네트워크 필수
+    volumes:
+      - ./asterisk/etc/asterisk:/etc/asterisk:ro
+      - ./src/fds_agi.py:/usr/share/asterisk/agi-bin/fds_agi.py
+      - ./audio:/audio
+    environment:
+      - FDS_API_URL=http://127.0.0.1:5000
+      - AUDIO_TMP=/audio/agi_tmp
+      - BANK_NAME=${BANK_NAME:-카드사}
+      - TTS_VOICE=${TTS_VOICE:-F1}
+    restart: unless-stopped
+    depends_on:
+      - fds-ai-advisor
+
+  # ── FDS AI 상담사 ──────────────────────────────────────────────────────────
   fds-ai-advisor:
     # 이미지 빌드
     build:
