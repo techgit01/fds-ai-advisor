@@ -36,3 +36,6 @@ Thumbs.db
 .vscode/settings.json
 .idea/
 *.swp
+
+# 중첩 클론 방지
+fds-ai-advisor/
