@@ -164,18 +164,67 @@ docker-compose -f docker-compose.fds.yml up -d   # 백그라운드
 
 ---
 
-## iPhone 설정 (Linphone)
+## 핸드폰 설정 (SIP 소프트폰)
 
-App Store에서 **Linphone** 설치 후:
+### iPhone (iOS)
+
+1. App Store → **Linphone** 검색 후 설치 (무료)
+2. 앱 실행 → **계정 사용** → **SIP 계정 등록**
 
 ```
-SIP 서버:   서버 IP (setup.sh 완료 후 출력됨)
-사용자:     iphone
-비밀번호:   fds1234!
-포트:       5060 (UDP)
+사용자 이름:   iphone
+SIP 도메인:    서버 IP  ← setup.sh 완료 후 출력됨
+비밀번호:      fds1234!
+전송 방식:     UDP
+포트:          5060
 ```
 
-> **팁**: 집 밖에서 테스트하려면 서버에 **Tailscale** 설치 후 iPhone에도 Tailscale 앱을 설치하면 어디서든 SIP 연결이 가능합니다 (무료).
+3. 상단에 초록 점(●) 표시되면 등록 완료
+
+> **주의**: iOS 백그라운드 제한으로 앱이 닫혀 있으면 수신이 안 됩니다. 테스트 중에는 앱을 화면 앞에 두세요.
+
+---
+
+### 삼성 (Android)
+
+1. Play 스토어 → **Linphone** 검색 후 설치 (무료)
+2. 앱 실행 → **계정 사용** → **SIP 계정 등록**
+
+```
+사용자 이름:   iphone
+SIP 도메인:    서버 IP  ← setup.sh 완료 후 출력됨
+비밀번호:      fds1234!
+전송 방식:     UDP
+포트:          5060
+```
+
+3. 상단 상태바에 전화기 아이콘이 나타나면 등록 완료
+
+> **Android 배터리 최적화 해제** (수신 누락 방지):
+> 설정 → 앱 → Linphone → 배터리 → **제한 없음** 선택
+
+---
+
+### 공통 — 집 밖 사용 (Tailscale VPN, 무료)
+
+같은 WiFi가 아닌 환경(LTE/5G)에서도 SIP 연결하려면:
+
+```bash
+# 서버 (WSL2)
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up
+tailscale ip   # → 100.x.x.x 형태의 Tailscale IP 확인
+```
+
+- iPhone / 삼성 모두 App Store · Play 스토어에서 **Tailscale** 앱 설치
+- 같은 계정으로 로그인
+- Linphone SIP 도메인을 **Tailscale IP (100.x.x.x)** 로 변경
+
+| | iPhone | 삼성 |
+|--|--------|------|
+| SIP 앱 | Linphone (App Store) | Linphone (Play 스토어) |
+| 배터리 최적화 | 포그라운드 유지 필요 | 배터리 → 제한 없음 설정 |
+| 비용 | 무료 | 무료 |
 
 ---
 
@@ -200,7 +249,7 @@ curl -X POST http://localhost:5000/api/call \
 cd src && ../.venv/bin/python3 caller.py
 ```
 
-iPhone Linphone이 울리고 → 수신하면 → AI 상담사가 한국어로 상담을 진행합니다.
+Linphone이 울리고 → 수신하면 → AI 상담사가 한국어로 상담을 진행합니다.
 
 ---
 
