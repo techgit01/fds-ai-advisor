@@ -1,0 +1,38 @@
+# 환경 변수 (API 키 포함 — 절대 커밋 금지)
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# uv
+uv.lock
+
+# 모델 캐시 (용량 큼)
+cache/
+*.bin
+*.pt
+*.onnx
+
+# 런타임 출력
+logs/
+audio/output/
+audio/input/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp

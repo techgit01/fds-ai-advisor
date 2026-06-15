@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  fds-ai-advisor:
+    # 이미지 빌드
+    build:
+      context: .
+      dockerfile: Dockerfile.fds
+    
+    # 컨테이너 이름
+    container_name: fds-ai-advisor-final
+    
+    # 환경 변수
+    environment:
+      # NVIDIA NIM API
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
+      
+      # STT (Whisper)
+      - WHISPER_MODEL=large-v3
+      - WHISPER_DEVICE=cpu          # WSL에서는 CPU 권장
+      
+      # TTS (Supertonic)
+      - SUPERTONIC_LANGUAGE=ko       # 한국어
+      
+      # LLM (NVIDIA NIM)
+      - NIM_MODEL=openai/gpt-oss-120b-instruct
+      
+      # FDS 설정
+      - BANK_NAME=카드사
+      - FRAUD_RISK_THRESHOLD_HIGH=0.6
+      - FRAUD_RISK_THRESHOLD_MEDIUM=0.35
+      
+      # 로깅
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+    
+    # 볼륨 마운트
+    volumes:
+      # 음성 파일 (고객 입력 / AI 응답 출력)
+      - ./audio/input:/app/audio/input
+      - ./audio/output:/app/audio/output
+      
+      # 통화 기록 (로그)
+      - ./logs:/app/logs
+      
+      # 모델 캐시 (반복 사용하므로 캐시 필요)
+      - ./cache/whisper:/root/.cache/whisper
+      - ./cache/huggingface:/root/.cache/huggingface
+      - ./cache/supertonic:/root/.cache/supertonic
+    
+    # 포트 (REST API 서버 - 선택)
+    ports:
+      - "8000:8000"
+    
+    # 네트워크
+    networks:
+      - fds-network
+    
+    # 재시작 정책
+    restart: unless-stopped
+    
+    # 로그 설정
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # 리소스 제한 (WSL 환경에 맞게 조정)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'           # CPU 2개
+          memory: 4G          # 메모리 4GB
+        reservations:
+          cpus: '1'
+          memory: 2G
+    
+    # 헬스체크
+    healthcheck:
+      test: ["CMD", "python", "-c", "print('healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# 네트워크 정의
+networks:
+  fds-network:
+    driver: bridge

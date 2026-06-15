@@ -1,0 +1,21 @@
+# FDS AI 상담사 - Python 3.12 + uv 자동 설치용
+# 설치: uv pip install -r requirements_supertonic.txt
+
+# STT
+openai-whisper>=20240314,<20260101
+
+# LLM (NVIDIA NIM, OpenAI 호환)
+openai>=1.30.0,<2.0.0
+
+# TTS
+supertonic>=1.3.0,<2.0.0
+
+# 오디오
+scipy>=1.12.0,<2.0.0
+numpy>=1.26.0,<3.0.0
+
+# 환경 변수
+python-dotenv>=1.0.0,<2.0.0
+
+# 웹 UI
+flask>=3.0.0,<4.0.0
