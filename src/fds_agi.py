@@ -133,7 +133,7 @@ def sanitize(text: str) -> str:
 
 def main():
     agi = AGI()
-    call_id   = agi.env.get("agi_uniqueid", "unknown").replace(".", "_")
+    call_id   = re.sub(r"[^a-zA-Z0-9_-]", "_", agi.env.get("agi_uniqueid", "unknown"))
     bank_name = os.getenv("BANK_NAME", "카드사")
 
     agi.verbose(f"통화 시작 — ID: {call_id}")

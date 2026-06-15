@@ -1,47 +1,39 @@
-# Dockerfile.fds
-# FDS AI 상담사 - WSL Docker 최적화 버전
-# Whisper + Supertonic 3 + NVIDIA NIM (GPT-OSS-120B)
+FROM python:3.12-slim
 
-FROM python:3.10-slim
-
-# 기본 도구 및 오디오 라이브러리 설치
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     git \
     curl \
-    wget \
     libsndfile1 \
-    libsox-dev \
-    sox \
     && rm -rf /var/lib/apt/lists/*
 
-# 작업 디렉토리
 WORKDIR /app
 
-# requirements.txt 복사 및 설치
-COPY requirements_supertonic.txt .
+# 의존성 먼저 (레이어 캐시 활용)
+COPY src/requirements_supertonic.txt .
 RUN pip install --no-cache-dir -r requirements_supertonic.txt
 
-# 소스 코드 복사
-COPY fds_detailed_final.py .
-COPY fraud_suspicion_prompt_detailed.py .
-COPY fds_fraud_advisor_prompt.py .
-COPY fds_detector.py .
-COPY fds_voice_call_agent.py .
+# 소스 코드
+COPY src/app.py .
+COPY src/fds_detector.py .
+COPY src/fds_detailed_final.py .
+COPY src/fraud_suspicion_prompt_detailed.py .
+COPY src/fds_fraud_advisor_prompt.py .
+COPY src/fds_agi.py .
+COPY src/caller.py .
+COPY src/templates/ templates/
+COPY src/static/ static/
 
-# 디렉토리 생성
-RUN mkdir -p audio/input audio/output logs cache/whisper cache/huggingface cache/supertonic
+RUN mkdir -p audio/agi_tmp audio/input audio/output logs cache/whisper cache/huggingface cache/supertonic
 
-# 포트 노출
-EXPOSE 8000
+EXPOSE 5000
 
-# 환경 변수 기본값
 ENV PYTHONUNBUFFERED=1
-ENV WHISPER_MODEL=large-v3
+ENV WHISPER_MODEL=base
 ENV WHISPER_DEVICE=cpu
 ENV SUPERTONIC_LANGUAGE=ko
 ENV NIM_MODEL=openai/gpt-oss-120b-instruct
 ENV LOG_LEVEL=INFO
+ENV PORT=5000
 
-# 실행 명령
-CMD ["python", "fds_detailed_final.py"]
+CMD ["python", "app.py"]

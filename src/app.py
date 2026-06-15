@@ -14,6 +14,8 @@ import threading
 from datetime import datetime
 from pathlib import Path
 
+import math
+
 import numpy as np
 import scipy.io.wavfile as wavfile
 from dotenv import load_dotenv
@@ -388,8 +390,10 @@ def api_agi_tts():
         if peak > 0:
             audio_f /= peak
 
-        # 44100 → 8000 Hz 리샘플 (441/80)
-        audio_8k = resample_poly(audio_f, 80, 441).astype(np.float32)
+        # 동적 비율 계산 (TTS 샘플레이트 → 8000 Hz)
+        src_rate = tts_engine.sample_rate
+        g = math.gcd(src_rate, 8000)
+        audio_8k = resample_poly(audio_f, 8000 // g, src_rate // g).astype(np.float32)
         audio_8k_int = (audio_8k * 32767).clip(-32768, 32767).astype(np.int16)
 
         buf = io.BytesIO()
@@ -503,4 +507,5 @@ def api_logs():
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    debug = os.getenv("FLASK_DEBUG", "false").lower() == "true"
+    app.run(host="0.0.0.0", port=port, debug=debug)

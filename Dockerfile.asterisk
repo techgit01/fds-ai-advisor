@@ -6,8 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-requests \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /audio/agi_tmp \
-    && chmod +x /usr/share/asterisk/agi-bin 2>/dev/null || true
+RUN mkdir -p /audio/agi_tmp /usr/share/asterisk/agi-bin
 
 EXPOSE 5060/udp 5060/tcp
 EXPOSE 10000-20000/udp
