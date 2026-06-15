@@ -1,25 +1,120 @@
 #!/usr/bin/env bash
-# FDS AI 상담사 — 서버 실행 스크립트
+# FDS AI 상담사 — 실행 스크립트
+#
+# 사용법:
+#   bash run.sh                  # Flask UI만 실행
+#   bash run.sh --with-asterisk  # Flask + Asterisk 전체 실행
+#   PORT=8080 bash run.sh        # 포트 변경
+
 set -euo pipefail
 
-PORT=${PORT:-5000}
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
+CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
 
-# 포트 충돌 해소
+ok()   { echo -e "${GREEN}✓${NC}  $*"; }
+info() { echo -e "${CYAN}→${NC}  $*"; }
+warn() { echo -e "${YELLOW}!${NC}  $*"; }
+err()  { echo -e "${RED}✗${NC}  $*" >&2; }
+
+PORT=${PORT:-5000}
+WITH_ASTERISK=false
+
+for arg in "$@"; do
+  case "$arg" in
+    --with-asterisk) WITH_ASTERISK=true ;;
+    --help|-h)
+      echo "사용법: bash run.sh [--with-asterisk] [PORT=포트번호]"
+      echo ""
+      echo "  --with-asterisk   Asterisk(SIP) 컨테이너도 함께 실행"
+      echo "  PORT=8080         Flask 포트 변경 (기본: 5000)"
+      exit 0
+      ;;
+  esac
+done
+
+# ── 저장소 루트 확인 ──────────────────────────────────────────────────────────
+if [[ ! -f "pyproject.toml" ]]; then
+  err "fds-ai-advisor 루트 디렉토리에서 실행하세요."
+  exit 1
+fi
+
+# ── Asterisk 실행 (--with-asterisk 옵션) ─────────────────────────────────────
+if [[ "$WITH_ASTERISK" == "true" ]]; then
+  if ! command -v docker &>/dev/null; then
+    err "Docker가 설치되어 있지 않습니다. setup.sh를 먼저 실행하세요."
+    exit 1
+  fi
+
+  info "Asterisk 컨테이너 시작 중..."
+
+  # 이미지가 없으면 빌드
+  if ! docker image inspect fds-asterisk &>/dev/null; then
+    info "Asterisk 이미지 빌드 중 (최초 1회)..."
+    docker build -f Dockerfile.asterisk -t fds-asterisk . -q
+    ok "이미지 빌드 완료"
+  fi
+
+  # 기존 컨테이너 정리
+  docker rm -f fds-asterisk 2>/dev/null && info "기존 Asterisk 컨테이너 제거" || true
+
+  # AGI 스크립트 실행 권한 부여
+  chmod +x src/fds_agi.py
+
+  # 컨테이너 실행
+  docker run -d \
+    --name fds-asterisk \
+    --network host \
+    -v "$(pwd)/asterisk/etc/asterisk:/etc/asterisk:ro" \
+    -v "$(pwd)/src/fds_agi.py:/usr/share/asterisk/agi-bin/fds_agi.py" \
+    -v "$(pwd)/audio:/audio" \
+    -e "FDS_API_URL=http://127.0.0.1:${PORT}" \
+    -e "AUDIO_TMP=/audio/agi_tmp" \
+    -e "BANK_NAME=${BANK_NAME:-카드사}" \
+    -e "TTS_VOICE=${TTS_VOICE:-F1}" \
+    fds-asterisk
+
+  ok "Asterisk 시작 완료 (SIP :5060, AMI :5038, RTP :10000-20000)"
+
+  # iPhone Linphone 연결 정보 출력
+  HOST_IP=$(hostname -I 2>/dev/null | awk '{print $1}' || echo "서버IP")
+  echo ""
+  echo -e "  ${BOLD}iPhone Linphone 설정${NC}"
+  echo -e "  ────────────────────────────────"
+  echo -e "  SIP 서버:  ${CYAN}${HOST_IP}${NC}"
+  echo -e "  사용자:    ${CYAN}iphone${NC}"
+  echo -e "  비밀번호:  ${CYAN}fds1234!${NC}"
+  echo -e "  포트:      ${CYAN}5060 (UDP)${NC}"
+  echo ""
+fi
+
+# ── 포트 충돌 해소 ───────────────────────────────────────────────────────────
 if lsof -ti:"$PORT" &>/dev/null; then
-  echo "포트 $PORT 사용 중 → 기존 프로세스 종료"
+  info "포트 $PORT 사용 중 → 기존 프로세스 종료"
   lsof -ti:"$PORT" | xargs kill -9
   sleep 0.5
 fi
 
-# Python 실행 파일 탐색
+# ── 필요 디렉토리 생성 ───────────────────────────────────────────────────────
+mkdir -p audio/agi_tmp audio/input audio/output logs
+
+# ── Python 실행 파일 탐색 ────────────────────────────────────────────────────
 if [[ -f ".venv/bin/python3" ]]; then
   PYTHON=".venv/bin/python3"
 elif command -v uv &>/dev/null; then
   PYTHON="uv run python"
 else
-  echo "오류: .venv 또는 uv를 찾을 수 없습니다. setup.sh를 먼저 실행하세요." >&2
+  err ".venv 또는 uv를 찾을 수 없습니다. setup.sh를 먼저 실행하세요."
   exit 1
 fi
 
-echo "→ http://localhost:${PORT}"
+# ── Flask 실행 ───────────────────────────────────────────────────────────────
+echo ""
+ok "Flask 테스트 UI 시작"
+echo -e "  → ${CYAN}http://localhost:${PORT}${NC}"
+if [[ "$WITH_ASTERISK" == "true" ]]; then
+  echo -e "  → Asterisk 발신: ${CYAN}POST /api/call${NC}"
+fi
+echo ""
+
+export PORT
 exec $PYTHON src/app.py
