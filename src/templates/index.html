@@ -13,6 +13,7 @@
     --border: #2a2d3e;
     --accent: #4f6ef7;
     --accent2: #7c3aed;
+    --accent3: #0ea5e9;
     --text: #e2e8f0;
     --muted: #64748b;
     --high: #ef4444;
@@ -50,6 +51,20 @@
     padding: 3px 8px;
     border-radius: 20px;
   }
+  .model-status {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+    font-size: 12px;
+    align-items: center;
+  }
+  .model-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    background: var(--muted);
+  }
+  .model-dot.loaded { background: var(--low); }
 
   .layout {
     display: grid;
@@ -77,18 +92,21 @@
     background: var(--bg);
     border-radius: var(--radius);
     padding: 4px;
+    flex-wrap: wrap;
   }
   .tab-btn {
     flex: 1;
-    padding: 8px;
+    min-width: 0;
+    padding: 7px 4px;
     background: none;
     border: none;
     color: var(--muted);
     border-radius: 7px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     transition: all .15s;
+    white-space: nowrap;
   }
   .tab-btn.active {
     background: var(--surface);
@@ -127,10 +145,7 @@
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 
-  .divider {
-    border: none;
-    border-top: 1px solid var(--border);
-  }
+  .divider { border: none; border-top: 1px solid var(--border); }
 
   .btn {
     padding: 11px 20px;
@@ -143,22 +158,11 @@
   }
   .btn:active { transform: scale(.98); }
   .btn:disabled { opacity: .45; cursor: not-allowed; }
-
-  .btn-primary {
-    background: var(--accent);
-    color: #fff;
-    width: 100%;
-  }
-  .btn-secondary {
-    background: var(--accent2);
-    color: #fff;
-    width: 100%;
-  }
-  .btn-ghost {
-    background: var(--border);
-    color: var(--text);
-    width: 100%;
-  }
+  .btn-primary  { background: var(--accent);  color: #fff; width: 100%; }
+  .btn-secondary{ background: var(--accent2); color: #fff; width: 100%; }
+  .btn-cyan     { background: var(--accent3); color: #fff; width: 100%; }
+  .btn-ghost    { background: var(--border);  color: var(--text); width: 100%; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; width: auto; }
 
   /* ── 오른쪽 결과 패널 ── */
   .panel-right {
@@ -200,46 +204,26 @@
     letter-spacing: .8px;
     margin-bottom: 14px;
   }
-  .fds-risk {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-  }
+  .fds-risk { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
   .risk-badge {
     font-size: 14px;
     font-weight: 700;
     padding: 4px 12px;
     border-radius: 20px;
   }
-  .risk-badge.high { background: rgba(239,68,68,.15); color: var(--high); border: 1px solid rgba(239,68,68,.3); }
+  .risk-badge.high   { background: rgba(239,68,68,.15);  color: var(--high);   border: 1px solid rgba(239,68,68,.3); }
   .risk-badge.medium { background: rgba(249,115,22,.15); color: var(--medium); border: 1px solid rgba(249,115,22,.3); }
-  .risk-badge.low { background: rgba(34,197,94,.15); color: var(--low); border: 1px solid rgba(34,197,94,.3); }
+  .risk-badge.low    { background: rgba(34,197,94,.15);  color: var(--low);    border: 1px solid rgba(34,197,94,.3); }
 
   .score-bar-wrap { display: flex; align-items: center; gap: 10px; flex: 1; }
-  .score-bar {
-    flex: 1;
-    height: 6px;
-    background: var(--border);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  .score-fill {
-    height: 100%;
-    border-radius: 3px;
-    transition: width .5s ease;
-  }
-  .score-fill.high { background: var(--high); }
+  .score-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 3px; transition: width .5s ease; }
+  .score-fill.high   { background: var(--high); }
   .score-fill.medium { background: var(--medium); }
-  .score-fill.low { background: var(--low); }
+  .score-fill.low    { background: var(--low); }
   .score-text { font-size: 13px; color: var(--muted); white-space: nowrap; }
 
-  .signals {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 8px;
-  }
+  .signals { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .signal-tag {
     font-size: 12px;
     padding: 3px 10px;
@@ -251,142 +235,137 @@
 
   /* 대화 */
   .conversation { display: flex; flex-direction: column; gap: 10px; }
-  .conv-title {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--muted);
-    letter-spacing: .8px;
-    padding: 0 4px;
-  }
+  .conv-title { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .8px; padding: 0 4px; }
 
-  .msg {
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-  }
+  .msg { display: flex; gap: 10px; align-items: flex-start; }
   .msg-avatar {
-    width: 30px;
-    height: 30px;
+    width: 30px; height: 30px;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
-    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
   }
-  .msg.advisor .msg-avatar { background: rgba(79,110,247,.2); color: var(--advisor); }
+  .msg.advisor  .msg-avatar { background: rgba(79,110,247,.2); color: var(--advisor); }
   .msg.customer .msg-avatar { background: rgba(124,58,237,.2); color: var(--customer); }
-  .msg.system .msg-avatar { background: var(--border); color: var(--muted); }
-  .msg.step .msg-avatar { background: transparent; color: var(--muted); font-size: 16px; }
+  .msg.system   .msg-avatar { background: var(--border); color: var(--muted); }
+  .msg.step     .msg-avatar { background: transparent; color: var(--muted); font-size: 16px; }
 
-  .msg-bubble {
-    max-width: 80%;
-    padding: 10px 14px;
-    border-radius: 12px;
-    font-size: 14px;
-    line-height: 1.5;
-  }
-  .msg.advisor .msg-bubble {
-    background: rgba(79,110,247,.1);
-    border: 1px solid rgba(79,110,247,.2);
-    border-top-left-radius: 3px;
-  }
-  .msg.customer .msg-bubble {
-    background: rgba(124,58,237,.1);
-    border: 1px solid rgba(124,58,237,.2);
-    border-top-left-radius: 3px;
-    margin-left: auto;
-  }
-  .msg.system .msg-bubble {
-    background: var(--bg);
-    border: 1px dashed var(--border);
-    border-top-left-radius: 3px;
-    font-family: monospace;
-    font-size: 13px;
-    color: var(--muted);
-  }
-  .msg.step .msg-bubble {
-    background: none;
-    border: none;
-    color: var(--muted);
-    font-size: 12px;
-    padding: 2px 0;
-  }
-  .msg.step .msg-bubble::before { content: '──  '; }
+  .msg-bubble { max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; }
+  .msg.advisor  .msg-bubble { background: rgba(79,110,247,.1);  border: 1px solid rgba(79,110,247,.2);  border-top-left-radius: 3px; }
+  .msg.customer .msg-bubble { background: rgba(124,58,237,.1); border: 1px solid rgba(124,58,237,.2); border-top-left-radius: 3px; margin-left: auto; }
+  .msg.system   .msg-bubble { background: var(--bg); border: 1px dashed var(--border); border-top-left-radius: 3px; font-family: monospace; font-size: 13px; color: var(--muted); }
+  .msg.step     .msg-bubble { background: none; border: none; color: var(--muted); font-size: 12px; padding: 2px 0; }
+  .msg.step     .msg-bubble::before { content: '──  '; }
 
-  .msg-label {
-    font-size: 11px;
-    color: var(--muted);
-    margin-bottom: 3px;
-  }
+  .msg-label { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
   .msg.customer { flex-direction: row-reverse; }
   .msg.customer .msg-label { text-align: right; }
 
   /* 최종 결과 */
-  .final-card {
-    border-radius: var(--radius);
-    padding: 18px 20px;
-    border: 2px solid;
-    text-align: center;
-  }
-  .final-card.정상거래 { background: rgba(34,197,94,.08); border-color: rgba(34,197,94,.3); }
-  .final-card.부정거래확정 { background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.3); }
-  .final-card.거래확인불가 { background: rgba(249,115,22,.08); border-color: rgba(249,115,22,.3); }
-  .final-card.통화실패 { background: rgba(100,116,139,.08); border-color: rgba(100,116,139,.3); }
+  .final-card { border-radius: var(--radius); padding: 18px 20px; border: 2px solid; text-align: center; }
+  .final-card.정상거래   { background: rgba(34,197,94,.08);  border-color: rgba(34,197,94,.3); }
+  .final-card.부정거래확정{ background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.3); }
+  .final-card.거래확인불가{ background: rgba(249,115,22,.08);border-color: rgba(249,115,22,.3); }
+  .final-card.통화실패   { background: rgba(100,116,139,.08);border-color: rgba(100,116,139,.3); }
   .final-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
   .final-value { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
-  .final-card.정상거래 .final-value { color: var(--low); }
+  .final-card.정상거래    .final-value { color: var(--low); }
   .final-card.부정거래확정 .final-value { color: var(--high); }
   .final-card.거래확인불가 .final-value { color: var(--medium); }
-  .final-card.통화실패 .final-value { color: var(--muted); }
+  .final-card.통화실패    .final-value { color: var(--muted); }
 
   /* 로그 테이블 */
-  .log-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  .log-table th {
-    text-align: left;
-    padding: 8px 12px;
-    color: var(--muted);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .5px;
-    border-bottom: 1px solid var(--border);
-  }
-  .log-table td {
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-  }
+  .log-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .log-table th { text-align: left; padding: 8px 12px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .5px; border-bottom: 1px solid var(--border); }
+  .log-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
   .log-table tr:last-child td { border-bottom: none; }
   .log-table tr:hover td { background: rgba(255,255,255,.02); }
 
-  /* 빈 상태 */
-  .empty-state {
+  /* STT / TTS 전용 */
+  .stt-result-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    min-height: 80px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .stt-result-box.placeholder { color: var(--muted); font-size: 13px; }
+
+  .segment-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .segment-time { color: var(--muted); white-space: nowrap; min-width: 100px; font-family: monospace; }
+
+  .rec-btn {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    border: none;
+    background: var(--high);
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    transition: all .15s;
+    flex-shrink: 0;
+  }
+  .rec-btn:hover { opacity: .85; }
+  .rec-btn.recording {
+    animation: pulse 1s ease-in-out infinite;
+    background: var(--medium);
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(249,115,22,.4); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(249,115,22,0); }
+  }
+
+  .mic-row { display: flex; gap: 12px; align-items: center; }
+  .mic-status { font-size: 13px; color: var(--muted); flex: 1; }
+
+  audio { width: 100%; border-radius: 8px; }
+  audio::-webkit-media-controls-panel { background: var(--surface); }
+
+  .tts-output-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    color: var(--muted);
-    padding: 60px 20px;
-    text-align: center;
+    gap: 10px;
   }
+
+  /* range slider */
+  input[type=range] {
+    padding: 0;
+    -webkit-appearance: none;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    border: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* 빈 상태 */
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--muted); padding: 60px 20px; text-align: center; }
   .empty-state .icon { font-size: 40px; opacity: .4; }
   .empty-state p { font-size: 14px; }
 
   /* 스피너 */
-  .spinner {
-    width: 18px; height: 18px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin .7s linear infinite;
-    display: inline-block;
-  }
+  .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; display: inline-block; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* 스크롤바 */
@@ -400,6 +379,13 @@
 <header>
   <div class="logo">FDS <span>AI</span> 상담사</div>
   <div class="badge">테스트 UI</div>
+  <div class="model-status" id="model-status">
+    <span class="model-dot" id="dot-whisper"></span>
+    <span id="label-whisper" style="color:var(--muted)">Whisper</span>
+    &nbsp;
+    <span class="model-dot" id="dot-tts"></span>
+    <span id="label-tts" style="color:var(--muted)">TTS</span>
+  </div>
 </header>
 
 <div class="layout">
@@ -409,7 +395,9 @@
 
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('detect')">FDS 탐지</button>
-      <button class="tab-btn" onclick="switchTab('simulate')">전체 시뮬레이션</button>
+      <button class="tab-btn" onclick="switchTab('simulate')">시뮬레이션</button>
+      <button class="tab-btn" onclick="switchTab('stt')">STT</button>
+      <button class="tab-btn" onclick="switchTab('tts')">TTS</button>
       <button class="tab-btn" onclick="switchTab('logs')">로그</button>
     </div>
 
@@ -464,7 +452,6 @@
       <button class="btn btn-primary" id="btn-detect" onclick="runDetect()">
         위험도 판정 실행
       </button>
-
       <p style="font-size:12px; color: var(--muted); margin-top: -6px;">
         NVIDIA API 키 없이 실행됩니다.
       </p>
@@ -477,6 +464,15 @@
         <label>NVIDIA API Key</label>
         <input id="s-apikey" type="password" placeholder="nvapi-..." value="">
         <span style="font-size:11px;color:var(--muted);margin-top:2px;">.env 파일 설정 시 비워두세요.</span>
+      </div>
+      <div class="form-group">
+        <label>TTS 목소리 (선택 시 음성 재생)</label>
+        <select id="s-voice">
+          <option value="">-- TTS 없음 (텍스트만) --</option>
+          {% for key, label in voices.items() %}
+          <option value="{{ key }}">{{ key }} — {{ label }}</option>
+          {% endfor %}
+        </select>
       </div>
 
       <hr class="divider">
@@ -534,10 +530,8 @@
       <div class="form-group">
         <label>PHASE 1 — 본인확인 응답</label>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
-          <button class="btn btn-ghost" style="width:auto;padding:5px 10px;font-size:12px;"
-            onclick="setPreset('s-p1','네, 맞습니다.')">본인확인</button>
-          <button class="btn btn-ghost" style="width:auto;padding:5px 10px;font-size:12px;"
-            onclick="setPreset('s-p1','아니요, 아닌데요.')">통화실패</button>
+          <button class="btn btn-ghost btn-sm" onclick="setPreset('s-p1','네, 맞습니다.')">본인확인</button>
+          <button class="btn btn-ghost btn-sm" onclick="setPreset('s-p1','아니요, 아닌데요.')">통화실패</button>
         </div>
         <textarea id="s-p1" rows="2">네, 맞습니다.</textarea>
       </div>
@@ -545,12 +539,9 @@
       <div class="form-group">
         <label>PHASE 2 — 거래확인 응답</label>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
-          <button class="btn btn-ghost" style="width:auto;padding:5px 10px;font-size:12px;"
-            onclick="setPreset('s-p2','네, 제가 했습니다.')">정상거래</button>
-          <button class="btn btn-ghost" style="width:auto;padding:5px 10px;font-size:12px;"
-            onclick="setPreset('s-p2','아니요, 제가 안 했어요.')">부정거래</button>
-          <button class="btn btn-ghost" style="width:auto;padding:5px 10px;font-size:12px;"
-            onclick="setPreset('s-p2','잘 모르겠어요.')">불확실</button>
+          <button class="btn btn-ghost btn-sm" onclick="setPreset('s-p2','네, 제가 했습니다.')">정상거래</button>
+          <button class="btn btn-ghost btn-sm" onclick="setPreset('s-p2','아니요, 제가 안 했어요.')">부정거래</button>
+          <button class="btn btn-ghost btn-sm" onclick="setPreset('s-p2','잘 모르겠어요.')">불확실</button>
         </div>
         <textarea id="s-p2" rows="2">아니요, 제가 안 했어요.</textarea>
       </div>
@@ -558,6 +549,108 @@
       <button class="btn btn-secondary" id="btn-simulate" onclick="runSimulate()">
         시뮬레이션 실행
       </button>
+    </div>
+
+    <!-- STT 탭 -->
+    <div id="tab-stt" class="tab-panel">
+      <p class="section-title">음성 인식 (Whisper)</p>
+
+      <!-- 마이크 녹음 -->
+      <div class="form-group">
+        <label>마이크 녹음</label>
+        <div class="mic-row">
+          <button class="rec-btn" id="rec-btn" onclick="toggleRecording()" title="녹음 시작/중지">🎙</button>
+          <div>
+            <div class="mic-status" id="mic-status">버튼을 눌러 녹음을 시작하세요.</div>
+            <div id="rec-timer" style="font-size:12px;color:var(--muted);margin-top:2px;"></div>
+          </div>
+        </div>
+        <div id="rec-preview" style="margin-top:8px;display:none;">
+          <audio id="rec-audio" controls style="width:100%;"></audio>
+          <button class="btn btn-cyan" style="margin-top:8px;" id="btn-stt-rec" onclick="transcribeRecording()">
+            녹음 파일 인식
+          </button>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- 파일 업로드 -->
+      <div class="form-group">
+        <label>오디오 파일 업로드 (WAV / MP3 / WebM)</label>
+        <input id="stt-file" type="file" accept="audio/*" onchange="onFileSelect()">
+        <button class="btn btn-cyan" id="btn-stt-file" onclick="transcribeFile()" disabled>
+          파일 인식
+        </button>
+      </div>
+
+      <hr class="divider">
+
+      <!-- 인식 결과 -->
+      <div class="form-group">
+        <label>인식 결과</label>
+        <div class="stt-result-box placeholder" id="stt-transcript">결과가 여기 표시됩니다.</div>
+      </div>
+
+      <div id="stt-segments" style="display:none;">
+        <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">구간별 결과</label>
+        <div id="stt-segment-list" style="margin-top:6px;max-height:200px;overflow-y:auto;"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;" id="stt-actions" style="display:none;">
+        <button class="btn btn-ghost btn-sm" onclick="copySttResult()">결과 복사</button>
+        <button class="btn btn-ghost btn-sm" onclick="sendSttToTts()">TTS로 보내기</button>
+      </div>
+    </div>
+
+    <!-- TTS 탭 -->
+    <div id="tab-tts" class="tab-panel">
+      <p class="section-title">음성 합성 (Supertonic)</p>
+
+      <div class="form-group">
+        <label>목소리 선택</label>
+        <select id="tts-voice">
+          {% for key, label in voices.items() %}
+          <option value="{{ key }}" {% if key == 'F1' %}selected{% endif %}>{{ key }} — {{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>속도 (<span id="tts-speed-val">1.0</span>x)</label>
+        <input type="range" id="tts-speed" min="0.5" max="2.0" step="0.1" value="1.0"
+               oninput="document.getElementById('tts-speed-val').textContent=parseFloat(this.value).toFixed(1)">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:2px;">
+          <span>0.5x (느림)</span><span>1.0x</span><span>2.0x (빠름)</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>텍스트 (최대 500자)</label>
+        <textarea id="tts-text" rows="5" placeholder="안녕하세요. 신용카드사 FDS 담당자입니다. 고객님 명의로 해외 결제가 시도되어 연락드렸습니다."></textarea>
+        <span style="font-size:11px;color:var(--muted);text-align:right;" id="tts-charcount">0 / 500</span>
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" id="btn-tts-gen" onclick="generateTTS()" style="flex:1;">
+          음성 생성
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="setTtsPreset(1)">예문 1</button>
+        <button class="btn btn-ghost btn-sm" onclick="setTtsPreset(2)">예문 2</button>
+      </div>
+
+      <!-- 재생 / 다운로드 -->
+      <div class="tts-output-card" id="tts-output" style="display:none;">
+        <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.8px;">생성된 음성</div>
+        <audio id="tts-audio" controls></audio>
+        <div style="display:flex;gap:8px;">
+          <a class="btn btn-ghost btn-sm" id="tts-download" download="tts_output.wav">
+            다운로드 (WAV)
+          </a>
+          <button class="btn btn-ghost btn-sm" onclick="sendTtsToStt()">STT로 인식</button>
+        </div>
+        <div style="font-size:12px;color:var(--muted);" id="tts-info"></div>
+      </div>
     </div>
 
     <!-- 로그 탭 -->
@@ -571,7 +664,7 @@
   <!-- ── 오른쪽 결과 패널 ── -->
   <div class="panel-right">
     <div class="result-header">
-      <h2>결과</h2>
+      <h2 id="result-title">결과</h2>
       <div id="result-status"></div>
     </div>
     <div class="result-body" id="result-body">
@@ -585,44 +678,64 @@
 </div><!-- /layout -->
 
 <script>
-// ── 탭 전환 ──────────────────────────────────────────────────────────────────
+// ─── 탭 전환 ───────────────────────────────────────────────────────────────────
+const TAB_NAMES = ['detect','simulate','stt','tts','logs'];
+
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach((b, i) => {
-    b.classList.toggle('active', ['detect','simulate','logs'][i] === name);
+    b.classList.toggle('active', TAB_NAMES[i] === name);
   });
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
+  const titles = { detect:'FDS 위험도 분석', simulate:'시뮬레이션', stt:'STT — 음성 인식', tts:'TTS — 음성 합성', logs:'통화 로그' };
+  document.getElementById('result-title').textContent = titles[name] || '결과';
   if (name === 'logs') loadLogs();
+  if (name === 'stt')  clearResult('<div class="empty-state"><div class="icon">🎙</div><p>마이크 또는 파일로 음성을 인식합니다.</p></div>');
+  if (name === 'tts')  clearResult('<div class="empty-state"><div class="icon">🔊</div><p>텍스트를 입력하고 음성을 생성합니다.</p></div>');
 }
 
-function setPreset(id, val) {
-  document.getElementById(id).value = val;
-}
+function setPreset(id, val) { document.getElementById(id).value = val; }
 
-// ── 공통 유틸 ────────────────────────────────────────────────────────────────
+// ─── 공통 유틸 ────────────────────────────────────────────────────────────────
 function getDatetimeValue(id) {
   const v = document.getElementById(id).value;
-  if (!v) return '';
-  // datetime-local → "YYYY-MM-DD HH:MM"
-  return v.replace('T', ' ');
+  return v ? v.replace('T', ' ') : '';
 }
 
-function clearResult() {
-  document.getElementById('result-body').innerHTML = '';
+function clearResult(html = '') {
+  document.getElementById('result-body').innerHTML = html;
   document.getElementById('result-status').innerHTML = '';
 }
 
 function appendToResult(html) {
   document.getElementById('result-body').insertAdjacentHTML('beforeend', html);
-  const rb = document.getElementById('result-body');
-  rb.scrollTop = rb.scrollHeight;
+  document.getElementById('result-body').scrollTop = 9999;
 }
 
 function setStatus(html) {
   document.getElementById('result-status').innerHTML = html;
 }
 
-// ── FDS 탐지 ─────────────────────────────────────────────────────────────────
+// ─── 모델 상태 확인 ──────────────────────────────────────────────────────────
+async function checkModelStatus() {
+  try {
+    const r = await fetch('/api/models/status');
+    const d = await r.json();
+    const dw = document.getElementById('dot-whisper');
+    const dt = document.getElementById('dot-tts');
+    const lw = document.getElementById('label-whisper');
+    const lt = document.getElementById('label-tts');
+    if (d.whisper) { dw.classList.add('loaded'); lw.style.color = 'var(--low)'; }
+    else           { dw.classList.remove('loaded'); lw.style.color = 'var(--muted)'; }
+    if (d.tts)     { dt.classList.add('loaded'); lt.style.color = 'var(--low)'; }
+    else           { dt.classList.remove('loaded'); lt.style.color = 'var(--muted)'; }
+    document.getElementById('label-whisper').textContent = 'Whisper ' + (d.whisper_model || '');
+  } catch (_) {}
+}
+setInterval(checkModelStatus, 4000);
+checkModelStatus();
+
+// ─── FDS 탐지 ────────────────────────────────────────────────────────────────
 async function runDetect() {
   const btn = document.getElementById('btn-detect');
   btn.disabled = true;
@@ -632,20 +745,16 @@ async function runDetect() {
 
   const payload = {
     merchant: document.getElementById('d-merchant').value,
-    amount: document.getElementById('d-amount').value,
+    amount:   document.getElementById('d-amount').value,
     customer_avg_amount: document.getElementById('d-avg').value,
     location: document.getElementById('d-location').value,
-    time: getDatetimeValue('d-time'),
-    type: document.getElementById('d-type').value,
-    is_abroad: document.getElementById('d-abroad').value === 'true',
+    time:     getDatetimeValue('d-time'),
+    type:     document.getElementById('d-type').value,
+    is_abroad:document.getElementById('d-abroad').value === 'true',
   };
 
   try {
-    const res = await fetch('/api/detect', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    const res  = await fetch('/api/detect', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
     const data = await res.json();
     if (data.error) { appendToResult(`<p style="color:var(--high)">${data.error}</p>`); return; }
     renderFDSResult(data);
@@ -659,24 +768,19 @@ async function runDetect() {
 }
 
 function renderFDSResult(fds) {
-  const level = fds.risk_level;
-  const score = Math.round(fds.risk_score * 100);
-  const signals = (fds.reasons || []).map(r =>
-    `<span class="signal-tag">${r}</span>`
-  ).join('');
-  const recs = (fds.recommendations || []).map(r =>
+  const level   = fds.risk_level;
+  const score   = Math.round(fds.risk_score * 100);
+  const signals = (fds.reasons || []).map(r => `<span class="signal-tag">${r}</span>`).join('');
+  const recs    = (fds.recommendations || []).map(r =>
     `<li style="font-size:13px;color:var(--muted);margin-left:16px;list-style:disc;">${r}</li>`
   ).join('');
-
   appendToResult(`
     <div class="fds-card">
       <div class="fds-card-title">FDS 위험도 분석</div>
       <div class="fds-risk">
         <span class="risk-badge ${level}">${level.toUpperCase()}</span>
         <div class="score-bar-wrap">
-          <div class="score-bar">
-            <div class="score-fill ${level}" style="width:${score}%"></div>
-          </div>
+          <div class="score-bar"><div class="score-fill ${level}" style="width:${score}%"></div></div>
           <span class="score-text">${fds.risk_score}</span>
         </div>
       </div>
@@ -686,7 +790,7 @@ function renderFDSResult(fds) {
   `);
 }
 
-// ── 전체 시뮬레이션 ──────────────────────────────────────────────────────────
+// ─── 전체 시뮬레이션 ─────────────────────────────────────────────────────────
 function runSimulate() {
   const btn = document.getElementById('btn-simulate');
   btn.disabled = true;
@@ -695,33 +799,27 @@ function runSimulate() {
   setStatus('<span class="spinner"></span>');
 
   const payload = {
-    nim_api_key: document.getElementById('s-apikey').value,
-    customer_name: document.getElementById('s-name').value,
-    bank_name: document.getElementById('s-bank').value,
-    merchant: document.getElementById('s-merchant').value,
-    amount: document.getElementById('s-amount').value,
+    nim_api_key:    document.getElementById('s-apikey').value,
+    customer_name:  document.getElementById('s-name').value,
+    bank_name:      document.getElementById('s-bank').value,
+    merchant:       document.getElementById('s-merchant').value,
+    amount:         document.getElementById('s-amount').value,
     customer_avg_amount: document.getElementById('s-avg').value,
-    location: document.getElementById('s-location').value,
-    time: getDatetimeValue('s-time'),
-    type: document.getElementById('s-type').value,
-    is_abroad: document.getElementById('s-type').value === '해외결제',
-    phase1_response: document.getElementById('s-p1').value,
-    phase2_response: document.getElementById('s-p2').value,
+    location:       document.getElementById('s-location').value,
+    time:           getDatetimeValue('s-time'),
+    type:           document.getElementById('s-type').value,
+    is_abroad:      document.getElementById('s-type').value === '해외결제',
+    phase1_response:document.getElementById('s-p1').value,
+    phase2_response:document.getElementById('s-p2').value,
+    tts_voice:      document.getElementById('s-voice').value,
   };
 
-  // 대화 컨테이너
   appendToResult('<div class="conversation" id="conv-wrap"><div class="conv-title">대화 기록</div></div>');
-
   const convWrap = () => document.getElementById('conv-wrap');
 
   function addMsg(type, text) {
-    const map = {
-      advisor:  ['상담사', '🤖'],
-      customer: ['고객',   '👤'],
-      system:   ['시스템', '⚙'],
-      step:     ['',       ''],
-    };
-    const [label, icon] = map[type] || ['', ''];
+    const map = { advisor:['상담사','🤖'], customer:['고객','👤'], system:['시스템','⚙'], step:['',''] };
+    const [label, icon] = map[type] || ['',''];
     const el = document.createElement('div');
     el.className = `msg ${type}`;
     el.innerHTML = `
@@ -729,97 +827,336 @@ function runSimulate() {
       <div>
         ${label ? `<div class="msg-label">${label}</div>` : ''}
         <div class="msg-bubble">${text}</div>
-      </div>
-    `;
+      </div>`;
     convWrap().appendChild(el);
     document.getElementById('result-body').scrollTop = 9999;
   }
 
-  fetch('/api/simulate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  }).then(res => {
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
+  let ttsQueue = Promise.resolve();
 
-    function read() {
-      reader.read().then(({ done, value }) => {
-        if (done) {
-          btn.disabled = false;
-          btn.innerHTML = '시뮬레이션 실행';
-          setStatus('');
-          return;
-        }
-        buffer += decoder.decode(value, { stream: true });
-        const parts = buffer.split('\n\n');
-        buffer = parts.pop();
-        parts.forEach(part => {
-          const lines = part.split('\n');
-          let eventType = 'message', data = '';
-          lines.forEach(l => {
-            if (l.startsWith('event: ')) eventType = l.slice(7).trim();
-            if (l.startsWith('data: ')) data = l.slice(6);
+  function playTtsBase64(b64) {
+    ttsQueue = ttsQueue.then(() => new Promise(resolve => {
+      const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+      const blob  = new Blob([bytes], { type:'audio/wav' });
+      const url   = URL.createObjectURL(blob);
+      const aud   = new Audio(url);
+      aud.onended = () => { URL.revokeObjectURL(url); resolve(); };
+      aud.onerror = () => resolve();
+      aud.play().catch(resolve);
+    }));
+  }
+
+  fetch('/api/simulate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+    .then(res => {
+      const reader  = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      function read() {
+        reader.read().then(({ done, value }) => {
+          if (done) { btn.disabled=false; btn.innerHTML='시뮬레이션 실행'; setStatus(''); return; }
+          buffer += decoder.decode(value, { stream:true });
+          const parts = buffer.split('\n\n');
+          buffer = parts.pop();
+          parts.forEach(part => {
+            const lines = part.split('\n');
+            let evt = 'message', data = '';
+            lines.forEach(l => {
+              if (l.startsWith('event: ')) evt  = l.slice(7).trim();
+              if (l.startsWith('data: '))  data = l.slice(6);
+            });
+            handleSSE(evt, data);
           });
-          handleSSE(eventType, data);
+          read();
         });
-        read();
-      });
-    }
-    read();
-  }).catch(e => {
-    appendToResult(`<p style="color:var(--high)">연결 오류: ${e.message}</p>`);
-    btn.disabled = false;
-    btn.innerHTML = '시뮬레이션 실행';
-    setStatus('');
-  });
+      }
+      read();
+    })
+    .catch(e => {
+      appendToResult(`<p style="color:var(--high)">연결 오류: ${e.message}</p>`);
+      btn.disabled=false; btn.innerHTML='시뮬레이션 실행'; setStatus('');
+    });
 
   function handleSSE(type, data) {
     switch (type) {
-      case 'fds':
-        try { renderFDSResult(JSON.parse(data)); } catch {}
-        break;
-      case 'step':
-        addMsg('step', data);
-        break;
-      case 'advisor':
-        addMsg('advisor', data);
-        break;
-      case 'customer':
-        addMsg('customer', data);
-        break;
-      case 'result_phase1':
-        addMsg('system', `PHASE 1 결과: <strong>${data}</strong>`);
-        break;
-      case 'result_phase2':
-        addMsg('system', `PHASE 2 결과: <strong>${data}</strong>`);
-        break;
+      case 'fds':         try { renderFDSResult(JSON.parse(data)); } catch {} break;
+      case 'step':        addMsg('step', data); break;
+      case 'advisor':     addMsg('advisor', data); break;
+      case 'customer':    addMsg('customer', data); break;
+      case 'tts_audio':   playTtsBase64(data); break;
+      case 'tts_error':   addMsg('system', '⚠ TTS 오류: ' + data); break;
+      case 'result_phase1': addMsg('system', `PHASE 1 결과: <strong>${data}</strong>`); break;
+      case 'result_phase2': addMsg('system', `PHASE 2 결과: <strong>${data}</strong>`); break;
       case 'final_result':
-        appendToResult(`
-          <div class="final-card ${data}">
-            <div class="final-label">최종 판정</div>
-            <div class="final-value">${data}</div>
-          </div>
-        `);
+        appendToResult(`<div class="final-card ${data}"><div class="final-label">최종 판정</div><div class="final-value">${data}</div></div>`);
         document.getElementById('result-body').scrollTop = 9999;
         break;
       case 'error':
         appendToResult(`<p style="color:var(--high);font-size:14px;">오류: ${data}</p>`);
-        btn.disabled = false;
-        btn.innerHTML = '시뮬레이션 실행';
-        setStatus('');
-        break;
+        btn.disabled=false; btn.innerHTML='시뮬레이션 실행'; setStatus(''); break;
     }
   }
 }
 
-// ── 로그 ─────────────────────────────────────────────────────────────────────
+// ─── STT ─────────────────────────────────────────────────────────────────────
+let mediaRecorder = null, recChunks = [], recStartTime = null, recTimerInterval = null;
+let recBlob = null;
+
+function toggleRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    stopRecording();
+  } else {
+    startRecording();
+  }
+}
+
+async function startRecording() {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    alert('이 브라우저는 마이크를 지원하지 않습니다.');
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      recBlob = new Blob(recChunks, { type: 'audio/webm' });
+      const url = URL.createObjectURL(recBlob);
+      const ra  = document.getElementById('rec-audio');
+      ra.src = url;
+      document.getElementById('rec-preview').style.display = 'block';
+      document.getElementById('mic-status').textContent = '녹음 완료. 인식 버튼을 눌러주세요.';
+      stream.getTracks().forEach(t => t.stop());
+    };
+    mediaRecorder.start();
+    recStartTime = Date.now();
+    recTimerInterval = setInterval(() => {
+      const s = Math.floor((Date.now() - recStartTime) / 1000);
+      document.getElementById('rec-timer').textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+    }, 500);
+
+    const btn = document.getElementById('rec-btn');
+    btn.classList.add('recording');
+    btn.textContent = '⏹';
+    document.getElementById('mic-status').textContent = '녹음 중... (버튼을 눌러 중지)';
+    document.getElementById('rec-preview').style.display = 'none';
+  } catch (e) {
+    alert('마이크 접근 오류: ' + e.message);
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder) mediaRecorder.stop();
+  clearInterval(recTimerInterval);
+  const btn = document.getElementById('rec-btn');
+  btn.classList.remove('recording');
+  btn.textContent = '🎙';
+}
+
+async function transcribeRecording() {
+  if (!recBlob) return;
+  const btn = document.getElementById('btn-stt-rec');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 인식 중...';
+
+  const fd = new FormData();
+  fd.append('audio', recBlob, 'recording.webm');
+  await runSTT(fd);
+
+  btn.disabled = false;
+  btn.innerHTML = '녹음 파일 인식';
+  checkModelStatus();
+}
+
+function onFileSelect() {
+  const f = document.getElementById('stt-file').files[0];
+  document.getElementById('btn-stt-file').disabled = !f;
+}
+
+async function transcribeFile() {
+  const f = document.getElementById('stt-file').files[0];
+  if (!f) return;
+  const btn = document.getElementById('btn-stt-file');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 인식 중...';
+
+  const fd = new FormData();
+  fd.append('audio', f, f.name);
+  await runSTT(fd);
+
+  btn.disabled = false;
+  btn.innerHTML = '파일 인식';
+  checkModelStatus();
+}
+
+async function runSTT(formData) {
+  const box = document.getElementById('stt-transcript');
+  box.textContent = '인식 중...';
+  box.classList.add('placeholder');
+  document.getElementById('stt-segments').style.display = 'none';
+  document.getElementById('stt-actions').style.display = 'none';
+
+  try {
+    const res  = await fetch('/api/stt', { method:'POST', body:formData });
+    const data = await res.json();
+    if (data.error) {
+      box.textContent = '오류: ' + data.error;
+      box.classList.add('placeholder');
+      return;
+    }
+
+    box.textContent = data.transcript || '(인식 결과 없음)';
+    box.classList.remove('placeholder');
+
+    if (data.segments && data.segments.length > 1) {
+      const list = document.getElementById('stt-segment-list');
+      list.innerHTML = data.segments.map(s =>
+        `<div class="segment-row">
+          <span class="segment-time">${s.start.toFixed(1)}s ~ ${s.end.toFixed(1)}s</span>
+          <span>${s.text}</span>
+        </div>`
+      ).join('');
+      document.getElementById('stt-segments').style.display = 'block';
+    }
+
+    document.getElementById('stt-actions').style.display = 'flex';
+
+    // 오른쪽 결과 패널에도 표시
+    clearResult();
+    appendToResult(`
+      <div class="fds-card">
+        <div class="fds-card-title">STT 인식 결과 (Whisper ${data.language?.toUpperCase() || 'KO'})</div>
+        <p style="font-size:17px;line-height:1.7;margin-top:8px;">${data.transcript}</p>
+        ${data.segments && data.segments.length > 1
+          ? `<p style="font-size:12px;color:var(--muted);margin-top:10px;">${data.segments.length}개 구간 감지</p>` : ''}
+      </div>
+    `);
+  } catch (e) {
+    box.textContent = '오류: ' + e.message;
+    box.classList.add('placeholder');
+  }
+}
+
+function copySttResult() {
+  const text = document.getElementById('stt-transcript').textContent;
+  navigator.clipboard.writeText(text).then(() => alert('클립보드에 복사되었습니다.'));
+}
+
+function sendSttToTts() {
+  const text = document.getElementById('stt-transcript').textContent;
+  document.getElementById('tts-text').value = text;
+  updateTtsCharCount();
+  switchTab('tts');
+}
+
+// ─── TTS ─────────────────────────────────────────────────────────────────────
+const TTS_PRESETS = [
+  '안녕하세요. 신용카드사 FDS 담당자입니다. 고객님 명의로 해외 결제가 시도되어 연락드렸습니다. 본인이 맞으시면 "네"라고 말씀해 주세요.',
+  '죄송합니다만, 고객님의 카드 거래 내역 중 의심스러운 항목이 감지되었습니다. 안전을 위해 잠시 확인 절차를 진행하겠습니다.',
+];
+
+function setTtsPreset(n) {
+  document.getElementById('tts-text').value = TTS_PRESETS[n - 1] || '';
+  updateTtsCharCount();
+}
+
+function updateTtsCharCount() {
+  const len = document.getElementById('tts-text').value.length;
+  const el  = document.getElementById('tts-charcount');
+  el.textContent = `${len} / 500`;
+  el.style.color = len > 450 ? 'var(--medium)' : 'var(--muted)';
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('tts-text').addEventListener('input', updateTtsCharCount);
+});
+
+let ttsObjectUrl = null;
+
+async function generateTTS() {
+  const text  = document.getElementById('tts-text').value.trim();
+  const voice = document.getElementById('tts-voice').value;
+  const speed = parseFloat(document.getElementById('tts-speed').value);
+
+  if (!text) { alert('텍스트를 입력하세요.'); return; }
+  if (text.length > 500) { alert('500자를 초과합니다.'); return; }
+
+  const btn = document.getElementById('btn-tts-gen');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 생성 중...';
+  document.getElementById('tts-output').style.display = 'none';
+
+  try {
+    const t0  = Date.now();
+    const res = await fetch('/api/tts', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ text, voice, speed }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(err.error || res.statusText);
+    }
+
+    const blob = await res.blob();
+    const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+
+    if (ttsObjectUrl) URL.revokeObjectURL(ttsObjectUrl);
+    ttsObjectUrl = URL.createObjectURL(blob);
+
+    const aud = document.getElementById('tts-audio');
+    aud.src = ttsObjectUrl;
+    aud.onloadedmetadata = () => {
+      document.getElementById('tts-info').textContent =
+        `목소리: ${voice} · 속도: ${speed.toFixed(1)}x · 재생 시간: ${aud.duration.toFixed(1)}s · 생성 시간: ${elapsed}s`;
+    };
+
+    document.getElementById('tts-download').href = ttsObjectUrl;
+    document.getElementById('tts-output').style.display = 'flex';
+    aud.play().catch(() => {});
+
+    // 오른쪽 패널에도 결과 표시
+    clearResult();
+    appendToResult(`
+      <div class="fds-card">
+        <div class="fds-card-title">TTS 생성 완료</div>
+        <p style="font-size:13px;color:var(--muted);margin-top:4px;">
+          목소리: <strong style="color:var(--text)">${voice}</strong> ·
+          속도: <strong style="color:var(--text)">${speed.toFixed(1)}x</strong> ·
+          생성: <strong style="color:var(--text)">${elapsed}s</strong>
+        </p>
+        <p style="font-size:14px;line-height:1.6;margin-top:12px;color:var(--muted);">"${text.slice(0,80)}${text.length>80?'…':''}"</p>
+      </div>
+    `);
+    checkModelStatus();
+  } catch (e) {
+    alert('TTS 오류: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '음성 생성';
+  }
+}
+
+function sendTtsToStt() {
+  // TTS WAV → STT로 인식
+  if (!ttsObjectUrl) return;
+  fetch(ttsObjectUrl)
+    .then(r => r.blob())
+    .then(blob => {
+      const fd = new FormData();
+      fd.append('audio', blob, 'tts_output.wav');
+      switchTab('stt');
+      return runSTT(fd);
+    });
+}
+
+// ─── 로그 ────────────────────────────────────────────────────────────────────
 async function loadLogs() {
   const area = document.getElementById('log-area');
   area.innerHTML = '<p style="color:var(--muted);font-size:13px;">불러오는 중...</p>';
   try {
-    const res = await fetch('/api/logs');
+    const res  = await fetch('/api/logs');
     const logs = await res.json();
     if (!logs.length) {
       area.innerHTML = '<p style="color:var(--muted);font-size:13px;">저장된 로그가 없습니다.</p>';
@@ -830,18 +1167,14 @@ async function loadLogs() {
         <td>${l.timestamp ? l.timestamp.slice(0,16) : '-'}</td>
         <td>${l.customer_name || '-'}</td>
         <td>${l.fds_analysis?.risk_level?.toUpperCase() || '-'}</td>
-        <td><span class="risk-badge ${l.result?.includes('부정') ? 'high' : l.result?.includes('정상') ? 'low' : 'medium'}"
+        <td><span class="risk-badge ${l.result?.includes('부정')?'high':l.result?.includes('정상')?'low':'medium'}"
           style="font-size:11px;">${l.result || '-'}</span></td>
-      </tr>
-    `).join('');
+      </tr>`).join('');
     area.innerHTML = `
       <table class="log-table" style="margin-top:10px;">
-        <thead><tr>
-          <th>시간</th><th>고객</th><th>위험도</th><th>결과</th>
-        </tr></thead>
+        <thead><tr><th>시간</th><th>고객</th><th>위험도</th><th>결과</th></tr></thead>
         <tbody>${rows}</tbody>
-      </table>
-    `;
+      </table>`;
   } catch (e) {
     area.innerHTML = `<p style="color:var(--high);font-size:13px;">로드 실패: ${e.message}</p>`;
   }
