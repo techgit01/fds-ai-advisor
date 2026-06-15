@@ -18,6 +18,8 @@ err()  { echo -e "${RED}✗${NC}  $*" >&2; }
 
 PORT=${PORT:-5000}
 WITH_ASTERISK=false
+TTS_COMPOSE="/home/user/tts_tuning/docker-compose.yml"
+TTS_DIR="/home/user/tts_tuning"
 
 for arg in "$@"; do
   case "$arg" in
@@ -36,6 +38,19 @@ done
 if [[ ! -f "pyproject.toml" ]]; then
   err "fds-ai-advisor 루트 디렉토리에서 실행하세요."
   exit 1
+fi
+
+# ── 상대 프로젝트(tts_tuning) 중지 ───────────────────────────────────────────
+_tts_containers=$(docker ps --format '{{.Names}}' 2>/dev/null \
+  | grep -E "^tts_" || true)
+if [ -n "$_tts_containers" ]; then
+  info "tts_tuning 컨테이너 중지 중..."
+  if [ -f "$TTS_COMPOSE" ]; then
+    docker compose -f "$TTS_COMPOSE" --project-directory "$TTS_DIR" down 2>/dev/null || true
+  else
+    echo "$_tts_containers" | xargs -r docker stop 2>/dev/null || true
+  fi
+  ok "tts_tuning 중지 완료"
 fi
 
 # ── Asterisk 실행 (--with-asterisk 옵션) ─────────────────────────────────────

@@ -4,6 +4,10 @@
 
 **스택**: Whisper (STT) · NVIDIA NIM GPT-OSS-120B (LLM) · Supertonic 3 (TTS) · Asterisk (SIP PBX)
 
+> **WSL 환경 공존**: 같은 머신에 `tts_tuning` (TTS BMT POC) 프로젝트가 있습니다.
+> `run.sh` 실행 시 tts_tuning Docker 컨테이너를 **자동으로 먼저 중지**합니다.
+> tts_tuning으로 전환하려면 `/home/user/tts_tuning/run.sh up` 을 실행하면 됩니다.
+
 ---
 
 ## 전체 아키텍처
@@ -68,11 +72,11 @@ fds-ai-advisor/
 ├── run.sh                              # 서버 실행 (Flask / Flask+Asterisk)
 ├── setup.sh                            # 신규 PC 환경 구축 (7단계)
 ├── pyproject.toml                      # uv 의존성 관리
-├── .env.example                        # 환경 변수 템플릿
-├── .env                                # 실제 환경 변수 (gitignore)
+├── docker-compose.fds.yml              # Asterisk + FDS 컨테이너 구성
 ├── Dockerfile.asterisk                 # Asterisk 컨테이너
 ├── Dockerfile.fds                      # FDS AI 앱 컨테이너
-├── docker-compose.fds.yml              # 전체 서비스 구성
+├── .env.example                        # 환경 변수 템플릿
+├── .env                                # 실제 환경 변수 (gitignore)
 ├── asterisk/
 │   └── etc/asterisk/
 │       ├── sip.conf                    # iPhone Linphone 내선 등록
@@ -87,9 +91,8 @@ fds-ai-advisor/
     ├── fds_detector.py                 # FDS 위험도 판정
     ├── fraud_suspicion_prompt_detailed.py
     ├── fds_fraud_advisor_prompt.py
-    ├── templates/
-    │   └── index.html                  # 테스트 UI (다크 테마, 5탭)
-    └── requirements_supertonic.txt
+    └── templates/
+        └── index.html                  # 테스트 UI (다크 테마, 5탭)
 ```
 
 ---
@@ -118,9 +121,8 @@ bash setup.sh
 | 6 | `.env` 파일 생성 + API 키 입력 |
 | 7 | 동작 확인 + Asterisk 이미지 빌드 |
 
-저장소 안에서 실행해도 정상 동작합니다:
 ```bash
-bash setup.sh   # 내부 실행 시 clone 없이 pull만 수행
+bash setup.sh   # 저장소 안에서 실행 시 clone 없이 pull만 수행
 ```
 
 ### 수동 설치
@@ -139,6 +141,7 @@ cp .env.example .env && nano .env
 
 ```bash
 bash run.sh
+# → tts_tuning 컨테이너 자동 중지 후 Flask 시작
 # → http://localhost:5000
 
 PORT=8080 bash run.sh   # 포트 변경
@@ -151,6 +154,7 @@ bash run.sh --with-asterisk
 ```
 
 실행 시 자동으로:
+- tts_tuning Docker 컨테이너 중지
 - Asterisk 이미지 빌드 (최초 1회)
 - 컨테이너 시작 (SIP :5060 · AMI :5038 · RTP :10000-20000)
 - iPhone Linphone 연결 정보 출력
@@ -158,8 +162,25 @@ bash run.sh --with-asterisk
 ### Docker Compose
 
 ```bash
-docker-compose -f docker-compose.fds.yml up
-docker-compose -f docker-compose.fds.yml up -d   # 백그라운드
+docker compose -f docker-compose.fds.yml up -d
+docker compose -f docker-compose.fds.yml down
+```
+
+---
+
+## 프로젝트 전환 (fds-ai-advisor ↔ tts_tuning)
+
+두 프로젝트는 메모리 절약을 위해 **한 번에 하나만** 실행합니다.
+각 `run.sh`가 상대 프로젝트를 자동 감지하여 중지합니다.
+
+```bash
+# fds 작업
+cd /home/user/fds-ai-advisor && bash run.sh
+# → tts_tuning Docker 컨테이너 자동 중지 후 fds Flask 기동
+
+# TTS BMT 작업으로 전환
+cd /home/user/tts_tuning && ./run.sh up
+# → fds 컨테이너 + 포트 5000 프로세스 자동 중지 후 TTS 기동
 ```
 
 ---
@@ -181,57 +202,30 @@ SIP 도메인:    서버 IP  ← setup.sh 완료 후 출력됨
 
 3. 상단에 초록 점(●) 표시되면 등록 완료
 
-> **주의**: iOS 백그라운드 제한으로 앱이 닫혀 있으면 수신이 안 됩니다. 테스트 중에는 앱을 화면 앞에 두세요.
-
----
+> **주의**: iOS 백그라운드 제한으로 앱이 닫혀 있으면 수신이 안 됩니다.
 
 ### 삼성 (Android)
 
-1. Play 스토어 → **Linphone** 검색 후 설치 (무료)
-2. 앱 실행 → **계정 사용** → **SIP 계정 등록**
+1. Play 스토어 → **Linphone** 설치
+2. 위와 동일하게 SIP 계정 등록
+3. **배터리 최적화 해제**: 설정 → 앱 → Linphone → 배터리 → **제한 없음**
 
-```
-사용자 이름:   iphone
-SIP 도메인:    서버 IP  ← setup.sh 완료 후 출력됨
-비밀번호:      fds1234!
-전송 방식:     UDP
-포트:          5060
-```
-
-3. 상단 상태바에 전화기 아이콘이 나타나면 등록 완료
-
-> **Android 배터리 최적화 해제** (수신 누락 방지):
-> 설정 → 앱 → Linphone → 배터리 → **제한 없음** 선택
-
----
-
-### 공통 — 집 밖 사용 (Tailscale VPN, 무료)
-
-같은 WiFi가 아닌 환경(LTE/5G)에서도 SIP 연결하려면:
+### 집 밖 사용 (Tailscale VPN, 무료)
 
 ```bash
 # 서버 (WSL2)
 curl -fsSL https://tailscale.com/install.sh | sh
 sudo tailscale up
-tailscale ip   # → 100.x.x.x 형태의 Tailscale IP 확인
+tailscale ip   # → 100.x.x.x
 ```
 
-- iPhone / 삼성 모두 App Store · Play 스토어에서 **Tailscale** 앱 설치
-- 같은 계정으로 로그인
-- Linphone SIP 도메인을 **Tailscale IP (100.x.x.x)** 로 변경
-
-| | iPhone | 삼성 |
-|--|--------|------|
-| SIP 앱 | Linphone (App Store) | Linphone (Play 스토어) |
-| 배터리 최적화 | 포그라운드 유지 필요 | 배터리 → 제한 없음 설정 |
-| 비용 | 무료 | 무료 |
+iPhone / 삼성에 Tailscale 앱 설치 → 같은 계정 로그인 → Linphone SIP 도메인을 Tailscale IP로 변경.
 
 ---
 
 ## 자동 발신 테스트
 
 ```bash
-# curl로 직접 발신
 curl -X POST http://localhost:5000/api/call \
   -H "Content-Type: application/json" \
   -d '{
@@ -244,9 +238,6 @@ curl -X POST http://localhost:5000/api/call \
       "time": "2026-06-16 03:45"
     }
   }'
-
-# Python 직접 실행
-cd src && ../.venv/bin/python3 caller.py
 ```
 
 Linphone이 울리고 → 수신하면 → AI 상담사가 한국어로 상담을 진행합니다.
@@ -303,7 +294,6 @@ result = detect_fraud_risk({
     "location": "뉴욕, 미국",
     "time": "2024-06-15 03:45",
     "merchant": "Amazon USA",
-    "type": "해외결제",
     "is_abroad": True,
     "customer_avg_amount": 500000,
 })
@@ -384,20 +374,15 @@ cp .env.example .env && nano .env
 
 **Linphone이 등록 안 됨**
 ```bash
-# Asterisk 로그 확인
 docker logs fds-asterisk -f
-
-# sip.conf 적용
 docker exec fds-asterisk asterisk -rx "sip reload"
 docker exec fds-asterisk asterisk -rx "sip show peers"
 ```
 
 **집 밖에서 SIP 연결 안 됨**
 ```bash
-# Tailscale 설치 (서버)
 curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up
 # iPhone에도 Tailscale 앱 설치 → 같은 계정 로그인
-# Linphone SIP 서버를 Tailscale IP로 변경
 ```
 
 **`ModuleNotFoundError`**
