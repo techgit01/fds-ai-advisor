@@ -128,15 +128,21 @@ require_cmd uv
 # ── STEP 3: 저장소 클론 ──────────────────────────────────────────────────────
 step "3/6" "저장소 클론"
 
-if [[ -d "$REPO_DIR/.git" ]]; then
+# 이미 저장소 내부(pyproject.toml + .git 존재)에서 실행 중인지 확인
+if [[ -f "pyproject.toml" && -d ".git" ]]; then
+  ok "이미 저장소 내부에서 실행 중 → git pull"
+  git pull --ff-only 2>/dev/null || true
+elif [[ -d "$REPO_DIR/.git" ]]; then
   ok "저장소 이미 존재 → git pull"
   git -C "$REPO_DIR" pull --ff-only
+  cd "$REPO_DIR"
 elif [[ -d "$REPO_DIR" ]]; then
   warn "'$REPO_DIR' 디렉토리가 존재하지만 git 저장소가 아닙니다."
   read -rp "  삭제하고 새로 클론할까요? [y/N] " ans
   if [[ "${ans,,}" == "y" ]]; then
     rm -rf "$REPO_DIR"
     git clone "$REPO_URL"
+    cd "$REPO_DIR"
   else
     err "수동으로 디렉토리를 정리한 후 다시 실행하세요."
     exit 1
@@ -144,9 +150,9 @@ elif [[ -d "$REPO_DIR" ]]; then
 else
   info "클론 중: $REPO_URL"
   git clone "$REPO_URL"
+  cd "$REPO_DIR"
 fi
 
-cd "$REPO_DIR"
 ok "저장소 준비 완료: $(pwd)"
 
 # ── STEP 4: Python 3.12 + 의존성 ─────────────────────────────────────────────
