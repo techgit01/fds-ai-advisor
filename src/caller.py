@@ -41,6 +41,32 @@ def _recv(sock: socket.socket, timeout: float = 3.0) -> str:
     return buf.decode("utf-8", errors="ignore")
 
 
+def _peer_registered(sock: socket.socket, peer: str = "iphone") -> bool:
+    """AMI로 'sip show peer'를 조회해 단말이 실제 등록(online)됐는지 확인."""
+    _send(sock, [
+        "Action: Command",
+        f"Command: sip show peer {peer}",
+        "ActionID: fds-check",
+    ])
+    # Command 응답은 여러 줄 → --END COMMAND-- 까지 읽음
+    sock.settimeout(3.0)
+    buf = b""
+    try:
+        while b"--END COMMAND--" not in buf:
+            chunk = sock.recv(4096)
+            if not chunk:
+                break
+            buf += chunk
+    except socket.timeout:
+        pass
+    resp = buf.decode("utf-8", errors="ignore")
+    # 등록 시 'Status : OK (xx ms)', 미등록 시 'UNKNOWN' + 'Addr->IP : (null)'
+    for line in resp.splitlines():
+        if "Status" in line and "OK" in line:
+            return True
+    return False
+
+
 def call(transaction: dict, customer_name: str = "고객",
          risk_level: str = "high") -> dict:
     """
@@ -69,6 +95,17 @@ def call(transaction: dict, customer_name: str = "고객",
             resp = _recv(s)
             if "Success" not in resp:
                 return {"success": False, "message": f"AMI 로그인 실패: {resp[:200]}"}
+
+            # 발신 전 단말 등록 확인 — 미등록이면 울릴 수 없으므로 솔직히 실패 반환
+            if not _peer_registered(s, "iphone"):
+                _send(s, ["Action: Logoff"])
+                return {
+                    "success": False,
+                    "message": "iPhone(Linphone)이 등록되지 않았습니다. "
+                               "Linphone 앱을 열고(필요시 Tailscale ON) 계정이 "
+                               "'등록됨' 상태인지 확인하세요. "
+                               "(서버: docker exec fds-asterisk asterisk -rx 'sip show peers')",
+                }
 
             # SIP/iphone 으로 발신 → 수신 시 fds-outbound 컨텍스트 실행
             _send(s, [

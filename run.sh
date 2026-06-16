@@ -75,12 +75,34 @@ if [[ "$WITH_ASTERISK" == "true" ]]; then
   # AGI 스크립트 실행 권한 부여
   chmod +x src/fds_agi.py
 
+  # ── Tailscale 외부망 연결 시 sip.conf에 externip 주입 ──────────────────────
+  # 외부망(LTE 등) 폰은 SDP에 Tailscale IP가 광고돼야 음성(RTP)이 흐른다.
+  # Tailscale 감지 시 sip.conf 런타임 사본에 externip/localnet을 추가한다.
+  SIP_CONF_OVERRIDE=""
+  if command -v tailscale &>/dev/null; then
+    TS_IP=$(tailscale ip -4 2>/dev/null | head -1)
+    if [[ -n "$TS_IP" ]]; then
+      RUNTIME_DIR="$(pwd)/asterisk/.runtime"
+      mkdir -p "$RUNTIME_DIR"
+      cp "$(pwd)/asterisk/etc/asterisk/sip.conf" "$RUNTIME_DIR/sip.conf"
+      # [general] 섹션 바로 뒤에 미디어 주소 라인 삽입
+      if ! grep -q "^externip" "$RUNTIME_DIR/sip.conf"; then
+        sed -i "/^\[general\]/a externip = ${TS_IP}\nlocalnet = 172.16.0.0/12\nlocalnet = 192.168.0.0/16\nlocalnet = 10.0.0.0/8" "$RUNTIME_DIR/sip.conf"
+      fi
+      SIP_CONF_OVERRIDE="$RUNTIME_DIR/sip.conf"
+      info "Tailscale 감지 → SDP 미디어 주소 externip=${TS_IP} 적용"
+    fi
+  fi
+
   # 커스텀 설정 파일만 개별 overlay 마운트.
   # (디렉토리 전체를 마운트하면 이미지의 기본 설정 113개가 사라져
   #  stasis.conf 등 누락 → "Stasis initialization failed"로 Asterisk가 죽음)
   CONF_MOUNTS=()
   for f in "$(pwd)/asterisk/etc/asterisk/"*.conf; do
-    CONF_MOUNTS+=(-v "${f}:/etc/asterisk/$(basename "$f"):ro")
+    src="$f"
+    # sip.conf는 Tailscale 주입본이 있으면 그걸로 대체
+    [[ "$(basename "$f")" == "sip.conf" && -n "$SIP_CONF_OVERRIDE" ]] && src="$SIP_CONF_OVERRIDE"
+    CONF_MOUNTS+=(-v "${src}:/etc/asterisk/$(basename "$f"):ro")
   done
 
   # 컨테이너 실행

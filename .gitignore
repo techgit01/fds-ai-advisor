@@ -39,3 +39,6 @@ Thumbs.db
 
 # 중첩 클론 방지
 fds-ai-advisor/
+
+# Asterisk 런타임 생성 설정(Tailscale externip 주입본)
+asterisk/.runtime/
