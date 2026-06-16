@@ -102,22 +102,24 @@ fds-ai-advisor/
 ### 다른 PC에 처음 설치 — 한눈에 (요약)
 
 ```bash
-# 1) (Asterisk 자동 발신을 쓸 경우) Docker 먼저 설치
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER && newgrp docker
-
-# 2) 저장소 클론 + 자동 환경 구축
+# 1) 저장소 클론 + 자동 환경 구축
 git clone https://github.com/techgit01/fds-ai-advisor.git
 cd fds-ai-advisor
-bash setup.sh                 # 의존성·Python·.env·Asterisk 이미지까지
+bash setup.sh                 # 의존성·Python·.env + Docker 자동설치(동의 시)·Asterisk 이미지
+
+# 2) (Docker 새로 설치된 경우) 그룹 적용
+newgrp docker                 # 또는 셸 다시 열기
 
 # 3) 실행
 bash run.sh                   # Flask UI만 (탐지·STT·TTS·시뮬레이션)
 bash run.sh --with-asterisk   # Flask + Asterisk (실제 전화 발신 포함)
 ```
 
-- **Docker**는 Asterisk(실제 전화 발신)에만 필요합니다. 탐지·STT·TTS·시뮬레이션만
-  쓸 거면 Docker 없이 `bash run.sh`로 충분합니다.
+- **Docker**는 Asterisk(실제 전화 발신)에만 필요합니다. `setup.sh`가 없으면
+  설치를 물어봅니다(동의 시 자동 설치). 탐지·STT·TTS·시뮬레이션만 쓸 거면
+  Docker 없이 `bash run.sh`로 충분합니다.
+- `run.sh --with-asterisk` 실행 시 **같은 Wi-Fi용 IP와 Tailscale(외부망) IP를
+  자동 구분 출력**합니다.
 - **다른 PC가 LTE/외부망 휴대폰과 연결**되려면 Tailscale이 필요합니다 →
   아래 [집 밖 사용 (Tailscale)](#집-밖-사용-tailscale-vpn-무료) 참고.
 
@@ -140,7 +142,7 @@ bash setup.sh
 | 단계 | 내용 |
 |------|------|
 | 1 | FFmpeg, Git 등 시스템 패키지 설치 |
-| 2 | Docker 확인 (없으면 설치 안내) |
+| 2 | Docker 확인 (없으면 자동 설치 — 동의 시) |
 | 3 | uv 설치 (Python 패키지 매니저) |
 | 4 | 저장소 클론 또는 pull |
 | 5 | Python 3.12 + 의존성 설치 |

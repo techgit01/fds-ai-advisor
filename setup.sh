@@ -101,21 +101,38 @@ if command -v docker &>/dev/null; then
   ok "Docker 확인: $DOCKER_VER"
   DOCKER_OK=true
 else
-  warn "Docker가 설치되어 있지 않습니다."
-  warn "Asterisk 자동 발신 기능을 사용하려면 Docker가 필요합니다."
-  echo ""
-  echo -e "  ${CYAN}Docker 설치 방법:${NC}"
+  warn "Docker가 설치되어 있지 않습니다. (Asterisk 자동 발신 기능에 필요)"
+  DOCKER_OK=false
   case "$OS" in
     wsl|linux)
-      echo "  curl -fsSL https://get.docker.com | sh"
-      echo "  sudo usermod -aG docker \$USER && newgrp docker"
+      read -rp "  지금 Docker를 자동 설치할까요? [Y/n] " ans
+      if [[ "${ans,,}" != "n" ]]; then
+        info "Docker 설치 중 (get.docker.com)..."
+        curl -fsSL https://get.docker.com | sudo sh
+        # 데몬 기동 (systemd 환경)
+        if command -v systemctl &>/dev/null; then
+          sudo systemctl enable --now docker 2>/dev/null || true
+        else
+          sudo service docker start 2>/dev/null || true
+        fi
+        # 현재 사용자 docker 그룹 추가 (다음 로그인부터 sudo 없이 사용)
+        sudo usermod -aG docker "$USER" 2>/dev/null || true
+        if sudo docker version &>/dev/null; then
+          ok "Docker 설치 완료: $(sudo docker --version 2>&1 | head -1)"
+          warn "그룹 적용을 위해 셸을 다시 열거나 'newgrp docker'를 실행하세요."
+          DOCKER_OK=true
+        else
+          warn "Docker 데몬을 시작하지 못했습니다. 수동 확인이 필요합니다."
+        fi
+      else
+        echo -e "  ${CYAN}나중에 수동 설치:${NC} curl -fsSL https://get.docker.com | sh"
+      fi
       ;;
     macos)
-      echo "  https://www.docker.com/products/docker-desktop 에서 설치"
+      echo -e "  ${CYAN}Docker Desktop 설치:${NC} https://www.docker.com/products/docker-desktop"
       ;;
   esac
   echo ""
-  DOCKER_OK=false
 fi
 
 # ── STEP 3: uv 설치 ──────────────────────────────────────────────────────────
@@ -278,8 +295,11 @@ fi
 
 # Asterisk Docker 빌드 (Docker 있을 때만)
 if [[ "$DOCKER_OK" == "true" ]]; then
+  # 방금 설치한 경우 docker 그룹이 현재 셸에 아직 적용 안 됨 → sudo 폴백
+  DOCKER="docker"
+  docker info &>/dev/null || DOCKER="sudo docker"
   info "Asterisk 이미지 빌드 중..."
-  docker build -f Dockerfile.asterisk -t fds-asterisk . -q \
+  $DOCKER build -f Dockerfile.asterisk -t fds-asterisk . -q \
     && ok "Asterisk 이미지 빌드 완료 (fds-asterisk)" \
     || warn "Asterisk 이미지 빌드 실패 — 나중에 수동으로 빌드하세요."
 else
@@ -303,9 +323,16 @@ if [[ "$DOCKER_OK" == "true" ]]; then
   echo -e "  bash run.sh --with-asterisk"
   echo ""
   echo -e "  ${BOLD}# iPhone Linphone 연결 정보${NC}"
-  # WSL2/리눅스 IP 출력
+  # 같은 Wi-Fi(LAN)용 IP
   HOST_IP=$(hostname -I 2>/dev/null | awk '{print $1}' || echo "서버IP")
-  echo -e "  SIP 서버:  ${CYAN}${HOST_IP}${NC}"
+  echo -e "  SIP 서버(같은 Wi-Fi):  ${CYAN}${HOST_IP}${NC}"
+  # 외부망(LTE 등)용 Tailscale IP — 설치/로그인 돼 있으면 출력
+  if command -v tailscale &>/dev/null; then
+    TS_IP=$(tailscale ip -4 2>/dev/null | head -1)
+    [[ -n "$TS_IP" ]] && echo -e "  SIP 서버(외부망/LTE):  ${CYAN}${TS_IP}${NC}  ${YELLOW}← 폰에 Tailscale 앱 필요${NC}"
+  else
+    echo -e "  ${YELLOW}외부망(LTE) 연결은 Tailscale 필요: curl -fsSL https://tailscale.com/install.sh | sh${NC}"
+  fi
   echo -e "  사용자:    ${CYAN}iphone${NC}"
   echo -e "  비밀번호:  ${CYAN}fds1234!${NC}"
   echo -e "  포트:      ${CYAN}5060${NC}"

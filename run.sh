@@ -103,7 +103,18 @@ if [[ "$WITH_ASTERISK" == "true" ]]; then
   echo ""
   echo -e "  ${BOLD}iPhone Linphone 설정${NC}"
   echo -e "  ────────────────────────────────"
-  echo -e "  SIP 서버:  ${CYAN}${HOST_IP}${NC}"
+  echo -e "  SIP 서버(같은 Wi-Fi):  ${CYAN}${HOST_IP}${NC}"
+  # 외부망(LTE 등)은 Tailscale IP로 연결 — 폰에도 Tailscale 앱 필요
+  if command -v tailscale &>/dev/null; then
+    TS_IP=$(tailscale ip -4 2>/dev/null | head -1)
+    if [[ -n "$TS_IP" ]]; then
+      echo -e "  SIP 서버(외부망/LTE):  ${CYAN}${TS_IP}${NC}  ${YELLOW}← 폰에 Tailscale 앱 ON${NC}"
+    else
+      echo -e "  ${YELLOW}외부망 연결: 'sudo tailscale up'으로 로그인 후 표시됩니다.${NC}"
+    fi
+  else
+    echo -e "  ${YELLOW}외부망(LTE) 연결은 Tailscale 필요 → README의 'Tailscale' 참고${NC}"
+  fi
   echo -e "  사용자:    ${CYAN}iphone${NC}"
   echo -e "  비밀번호:  ${CYAN}fds1234!${NC}"
   echo -e "  포트:      ${CYAN}5060 (UDP)${NC}"
