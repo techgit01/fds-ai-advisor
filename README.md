@@ -439,6 +439,32 @@ docker exec fds-asterisk asterisk -rx "sip reload"
 docker exec fds-asterisk asterisk -rx "sip show peers"
 ```
 
+**📞 실제 아이폰 발신 버튼을 눌러도 전화가 안 옴**
+
+버튼/서버는 정상인데 폰이 안 울리는 가장 흔한 원인은 **아이폰의 SIP 등록이
+풀린 것**입니다. `/api/call`은 발신을 큐에 넣어 `success`를 반환하지만, 받을
+기기가 등록돼 있지 않으면 울리지 않습니다.
+
+```bash
+# 1) 등록 상태 확인 — iphone이 OK (xx ms) 여야 함
+docker exec fds-asterisk asterisk -rx "sip show peers"
+#   iphone ... 100.x.x.x ... OK (77 ms)   ← 정상
+#   iphone ... (Unspecified) ... UNKNOWN  ← 등록 안 됨(offline)
+
+# 2) 외부망이면 Tailscale 도달성 확인
+tailscale ping <아이폰-tailscale-ip>
+```
+
+폰이 `offline`이면:
+1. 아이폰 **Tailscale 앱 ON** 확인
+2. **Linphone 앱을 직접 열어** "내 서버" 계정이 **등록됨(초록)** 인지 확인
+3. **테스트 중에는 Linphone을 포그라운드로 켜둘 것**
+
+> **iOS 백그라운드 제한**: iOS는 앱이 백그라운드로 가면 SIP 등록을 끊습니다.
+> 앱이 닫힌 상태에서도 전화를 받으려면 **푸시 알림(push)** 설정이 필요하며,
+> 커스텀 Asterisk에서는 별도 구성이 요구됩니다. 단순 테스트는 앱을 열어두면 됩니다.
+> (안드로이드는 **배터리 최적화 해제**로 백그라운드 수신이 대체로 유지됩니다.)
+
 **집 밖에서 SIP 연결 안 됨**
 ```bash
 curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up
