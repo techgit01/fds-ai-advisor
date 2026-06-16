@@ -99,6 +99,32 @@ fds-ai-advisor/
 
 ## 설치
 
+### 다른 PC에 처음 설치 — 한눈에 (요약)
+
+```bash
+# 1) (Asterisk 자동 발신을 쓸 경우) Docker 먼저 설치
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER && newgrp docker
+
+# 2) 저장소 클론 + 자동 환경 구축
+git clone https://github.com/techgit01/fds-ai-advisor.git
+cd fds-ai-advisor
+bash setup.sh                 # 의존성·Python·.env·Asterisk 이미지까지
+
+# 3) 실행
+bash run.sh                   # Flask UI만 (탐지·STT·TTS·시뮬레이션)
+bash run.sh --with-asterisk   # Flask + Asterisk (실제 전화 발신 포함)
+```
+
+- **Docker**는 Asterisk(실제 전화 발신)에만 필요합니다. 탐지·STT·TTS·시뮬레이션만
+  쓸 거면 Docker 없이 `bash run.sh`로 충분합니다.
+- **다른 PC가 LTE/외부망 휴대폰과 연결**되려면 Tailscale이 필요합니다 →
+  아래 [집 밖 사용 (Tailscale)](#집-밖-사용-tailscale-vpn-무료) 참고.
+
+> **WSL2에서 설치 시**: Docker·Tailscale 데몬이 systemd로 동작해야 합니다.
+> `/etc/wsl.conf`에 `[boot]\nsystemd=true` 가 있어야 하며(없으면 추가 후
+> `wsl --shutdown`으로 재시작), 설치 후 `sudo systemctl enable --now docker tailscaled`.
+
 ### 신규 PC — 자동 설치 (권장)
 
 Ubuntu / Debian / macOS / WSL2 모두 지원.
@@ -212,18 +238,50 @@ SIP 도메인:    서버 IP  ← setup.sh 완료 후 출력됨
 
 ### 집 밖 사용 (Tailscale VPN, 무료)
 
+LTE 등 **외부망 휴대폰**을 집/회사 서버에 연결하는 가장 쉬운 방법.
+(일반 터널 ngrok/cloudflared는 RTP 음성을 못 넘겨 권장하지 않음.)
+
+**1) 서버에 Tailscale 설치 + 로그인**
 ```bash
-# 서버 (WSL2)
 curl -fsSL https://tailscale.com/install.sh | sh
-sudo tailscale up
-tailscale ip   # → 100.x.x.x
+sudo systemctl enable --now tailscaled      # WSL2/리눅스
+sudo tailscale up --hostname=fds-server
+# → 출력되는 https://login.tailscale.com/... URL을 브라우저에서 열어 로그인
+tailscale ip -4                              # 서버 Tailscale IP 확인 (예: 100.85.177.87)
 ```
 
-iPhone / 삼성에 Tailscale 앱 설치 → 같은 계정 로그인 → Linphone SIP 도메인을 Tailscale IP로 변경.
+**2) 휴대폰에 Tailscale 앱 설치** → **서버와 같은 계정**으로 로그인 → VPN ON.
+
+**3) Linphone 계정의 SIP 도메인/프록시를 서버 Tailscale IP로 설정**
+```
+사용자 이름:   iphone
+SIP 도메인:    100.x.x.x      ← 서버 Tailscale IP (sip.linphone.org 아님!)
+프록시/레지스트라: 100.x.x.x
+비밀번호:      fds1234!
+전송 방식:     UDP / 포트 5060
+```
+
+> `sip.conf`에는 Tailscale 대역을 로컬로 인식시키는 `localnet = 100.64.0.0/10`
+> 설정이 포함되어 있습니다. 이게 있어야 RTP(음성)가 **양방향**으로 흐릅니다.
+> (없으면 전화는 울려도 한쪽 음성만 들릴 수 있음.)
+
+**4) 등록 확인**
+```bash
+docker exec fds-asterisk asterisk -rx "sip show peers"
+# iphone ... OK (xx ms) 로 나오면 등록 성공
+```
 
 ---
 
 ## 자동 발신 테스트
+
+### 화면에서 (가장 쉬움)
+
+1. `bash run.sh --with-asterisk` 로 실행 → http://localhost:5000
+2. **시뮬레이션** 탭 → 거래정보 입력 → 맨 아래 **📞 실제 아이폰 발신** 클릭
+3. 등록된 iPhone(Linphone)이 울립니다.
+
+### API로 (curl)
 
 ```bash
 curl -X POST http://localhost:5000/api/call \
@@ -253,7 +311,7 @@ http://localhost:5000
 | 탭 | 기능 |
 |----|------|
 | **FDS 탐지** | 거래 정보 입력 → 위험도 판정 (API 키 불필요) |
-| **시뮬레이션** | PHASE 1/2 전체 상담 SSE 스트리밍 + TTS 음성 재생 |
+| **시뮬레이션** | PHASE 1/2 전체 상담 SSE 스트리밍 + TTS 음성 재생 / **📞 실제 아이폰 발신** 버튼 |
 | **STT** | 마이크 녹음 / 파일 업로드 → Whisper 한국어 인식 |
 | **TTS** | 텍스트 + 목소리 선택 → 음성 생성 · 재생 · 다운로드 |
 | **로그** | 최근 통화 로그 20건 |

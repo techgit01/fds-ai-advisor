@@ -549,6 +549,16 @@
       <button class="btn btn-secondary" id="btn-simulate" onclick="runSimulate()">
         시뮬레이션 실행
       </button>
+
+      <hr class="divider">
+      <p class="section-title">실제 발신 (아이폰)</p>
+      <p style="font-size:13px;color:var(--muted);margin:0 0 8px;">
+        위 거래정보로 등록된 iPhone(Linphone)에 실제 전화를 겁니다.
+        Asterisk가 실행 중이고 아이폰이 등록돼 있어야 합니다.
+      </p>
+      <button class="btn btn-primary" id="btn-call" onclick="runCall()">
+        📞 실제 아이폰 발신
+      </button>
     </div>
 
     <!-- STT 탭 -->
@@ -895,6 +905,49 @@ function runSimulate() {
         appendToResult(`<p style="color:var(--high);font-size:14px;">오류: ${data}</p>`);
         btn.disabled=false; btn.innerHTML='시뮬레이션 실행'; setStatus(''); break;
     }
+  }
+}
+
+// ─── 실제 발신 (아이폰) ───────────────────────────────────────────────────────
+async function runCall() {
+  const btn = document.getElementById('btn-call');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 발신 중...';
+  clearResult();
+  setStatus('<span class="spinner"></span>');
+
+  const payload = {
+    customer_name: document.getElementById('s-name').value,
+    risk_level:    'high',
+    transaction: {
+      amount:   document.getElementById('s-amount').value,
+      merchant: document.getElementById('s-merchant').value,
+      location: document.getElementById('s-location').value,
+      time:     getDatetimeValue('s-time'),
+    },
+  };
+
+  try {
+    const r = await fetch('/api/call', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+    const d = await r.json();
+    const cls  = d.success ? 'low' : 'high';
+    const icon = d.success ? '📞' : '⚠';
+    const msg  = d.message || d.error || (d.success ? '발신 성공' : '발신 실패');
+    appendToResult(
+      `<div class="final-card ${cls}">` +
+      `<div class="final-label">${icon} 실제 발신</div>` +
+      `<div class="final-value" style="font-size:16px;">${msg}</div></div>`
+    );
+  } catch (e) {
+    appendToResult(`<p style="color:var(--high);font-size:14px;">발신 오류: ${e.message}</p>`);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '📞 실제 아이폰 발신';
+    setStatus('');
   }
 }
 
