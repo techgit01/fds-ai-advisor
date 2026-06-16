@@ -1,4 +1,6 @@
-FROM debian:bookworm-slim
+# 주의: Debian 12(bookworm)에는 asterisk 패키지가 없음(릴리스 직전 제거됨).
+# asterisk가 포함된 Debian 11(bullseye) 사용.
+FROM debian:bullseye-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     asterisk \

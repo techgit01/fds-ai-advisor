@@ -75,11 +75,19 @@ if [[ "$WITH_ASTERISK" == "true" ]]; then
   # AGI 스크립트 실행 권한 부여
   chmod +x src/fds_agi.py
 
+  # 커스텀 설정 파일만 개별 overlay 마운트.
+  # (디렉토리 전체를 마운트하면 이미지의 기본 설정 113개가 사라져
+  #  stasis.conf 등 누락 → "Stasis initialization failed"로 Asterisk가 죽음)
+  CONF_MOUNTS=()
+  for f in "$(pwd)/asterisk/etc/asterisk/"*.conf; do
+    CONF_MOUNTS+=(-v "${f}:/etc/asterisk/$(basename "$f"):ro")
+  done
+
   # 컨테이너 실행
   docker run -d \
     --name fds-asterisk \
     --network host \
-    -v "$(pwd)/asterisk/etc/asterisk:/etc/asterisk:ro" \
+    "${CONF_MOUNTS[@]}" \
     -v "$(pwd)/src/fds_agi.py:/usr/share/asterisk/agi-bin/fds_agi.py" \
     -v "$(pwd)/audio:/audio" \
     -e "FDS_API_URL=http://127.0.0.1:${PORT}" \
